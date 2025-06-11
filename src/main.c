@@ -10,6 +10,7 @@
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,10 +28,31 @@ SDL_Surface* global_Screen_Surface = NULL;
 SDL_Renderer* global_Renderer = NULL;
 SDL_Texture* global_Texture = NULL;
 
+TTF_Font* global_Font = NULL;
+SDL_Rect game_Message_Rect = {0, 0, 40, 15};
+SDL_Color White = {255, 255, 255};
 
 int main() {
-    //Initializing the SDL_Subsystems
 
+    // Loading the default font for the game (font can be changed, this one is
+    // just a placeholder)
+    {
+        TTF_Init();
+        char* global_Font_Path = "fonts/BlockMonoFont/BlockMono-Regular.ttf";
+        global_Font = TTF_OpenFont(global_Font_Path, 15);
+
+        if (global_Font == NULL) {
+            fprintf(stderr, "Unable to open font file %s: %s\n",
+                    global_Font_Path, TTF_GetError());
+        }
+
+        // int temp = TTF_Init();
+        // if (temp < 0) {
+        //     fprintf(stderr, "Error initializing TTF Library: %s\n", TTF_GetError());
+        // }
+    }
+
+    //Initializing the SDL_Subsystems
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         fprintf(stderr, "Was unable to initialize SDL: %s\n",
                 SDL_GetError());
@@ -57,14 +79,6 @@ int main() {
         exit(1);
     }
 
-//     global_Screen_Surface = SDL_GetWindowSurface(global_Window);
-
-//     if (global_Screen_Surface == NULL) {
-//         fprintf(stderr, 
-//                 "Failed to retrieve main window surface: %s\n",
-//                 SDL_GetError());
-//     }
-
     // Defining and checking the global_Renderer variable
     global_Renderer = SDL_CreateRenderer(global_Window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -78,17 +92,6 @@ int main() {
                     "Couldn't load the specified image at %s: %s\n",
                     homepage_path, SDL_GetError());
             exit(1);
-
-            // if (SDL_FillRect(global_Screen_Surface, NULL,
-            //     SDL_MapRGBA(global_Screen_Surface->format,
-            //         255, 255, 255, 255)) < 0) {
-            //     fprintf(stderr, "Couldn't fill Screen with color: %s\n",
-            //     SDL_GetError());
-                
-            // }
-        // } else {
-            // global_Screen_Surface = SDL_ConvertSurface(homepage_Surface,
-            //         global_Screen_Surface->format, 0);
         } else {
             global_Texture =
                 SDL_CreateTextureFromSurface(global_Renderer,
@@ -102,10 +105,17 @@ int main() {
         SDL_FreeSurface(homepage_Surface);
     }
 
+    {
+        SDL_Texture* Message_Texture = NULL;
+        
+        // Using global_Screen_Surface as a buffer of sorts
+        global_Screen_Surface = TTF_RenderText_Solid(global_Font,
+                "Loading...", White);
 
-    // SDL_UpdateWindowSurface(global_Window);
+        SDL_RenderCopy(global_Renderer, Message_Texture, NULL, &game_Message_Rect);
 
-    
+    }
+
 
     int quit = 0;
     SDL_Event currentEvent;
@@ -124,6 +134,12 @@ int main() {
 
     printf("Goodbye!\n");
 
+    TTF_CloseFont(global_Font);
+
+    SDL_DestroyTexture(global_Texture);
+    global_Texture = NULL;
+    SDL_DestroyRenderer(global_Renderer);
+    global_Renderer = NULL;
     SDL_FreeSurface(global_Screen_Surface);
     global_Screen_Surface = NULL;
     SDL_DestroyWindow(global_Window);
