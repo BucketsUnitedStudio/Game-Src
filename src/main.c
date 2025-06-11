@@ -1,3 +1,6 @@
+#define SDL_MAIN_HANDLED
+
+#include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_pixels.h>
@@ -31,8 +34,8 @@ int main() {
         exit(1);
     }
 
-    global_Window = SDL_CreateWindow("The UnNamed (game)",
-            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    global_Window = SDL_CreateWindow("The UnNam'd Gam'd",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
             INITIAL_WIDTH, INITIAL_HEIGHT, SDL_WINDOW_SHOWN);
 
     if (global_Window == NULL) {
@@ -57,6 +60,7 @@ int main() {
     }
 
     SDL_UpdateWindowSurface(global_Window);
+    
 
     int quit = 0;
     SDL_Event currentEvent;
