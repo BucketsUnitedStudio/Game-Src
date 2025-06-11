@@ -6,8 +6,8 @@ Game source files and documentation
 - Cython (to convert python to C)
 
 # General structure of files
-./README.md
-./Makefile 
-./build 
-./src 
-./doc
+- ./README.md
+- ./Makefile 
+- ./build 
+- ./src 
+- ./doc
