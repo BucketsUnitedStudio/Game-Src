@@ -1,6 +1,6 @@
-#include <sys/ucontext.h>
 #define SDL_MAIN_HANDLED
 
+#include <sys/ucontext.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_error.h>
@@ -24,9 +24,6 @@
 // Main window
 SDL_Window* global_Window = NULL;
 
-// Main Screen Surface
-SDL_Surface* global_Screen_Surface = NULL;
-
 // Main renderer and texture
 SDL_Renderer* global_Renderer = NULL;
 SDL_Texture* global_Texture = NULL;
@@ -38,6 +35,7 @@ SDL_Rect global_Window_Rect = {0, 0, INITIAL_WIDTH, INITIAL_HEIGHT};
 SDL_Rect game_Message_Rect = {320, 300, 200, 50};
 SDL_Color White = {255, 255, 255};
 
+// Just Initializing a lot of stuff, and error checking for the most part
 void init();
 
 int main() {
@@ -45,16 +43,14 @@ int main() {
 
     SDL_Texture* Message_Texture = NULL;
         
-    // Using global_Screen_Surface as a buffer of sorts
-    global_Screen_Surface = TTF_RenderText_Solid(global_Font,
+    {
+    SDL_Surface* temp_surface = TTF_RenderText_Solid(global_Font,
         "Loading...", White);
 
-    Message_Texture = SDL_CreateTextureFromSurface(global_Renderer,  global_Screen_Surface);
+    Message_Texture = SDL_CreateTextureFromSurface(global_Renderer,  temp_surface);
+        SDL_FreeSurface(temp_surface);
+    }
 
-
-    SDL_FreeSurface(global_Screen_Surface);
-    global_Screen_Surface = NULL;
-    
     SDL_Rect loading_Screen_Rect; 
     loading_Screen_Rect.h = 200; 
     loading_Screen_Rect.w = 200; 
@@ -96,14 +92,9 @@ int main() {
     global_Texture = NULL;
     SDL_DestroyRenderer(global_Renderer);
     global_Renderer = NULL;
-    SDL_FreeSurface(global_Screen_Surface);
-    global_Screen_Surface = NULL;
     SDL_DestroyWindow(global_Window);
     global_Window = NULL;
 }
-
-
-
 
 
 
