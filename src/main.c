@@ -1,5 +1,6 @@
 #define SDL_MAIN_HANDLED
 
+// #include <sys/ucontext.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_error.h>
@@ -20,8 +21,16 @@
 #define INITIAL_HEIGHT 800
 #define WINDOW_NAME "Recollection"
 #define FONT_PATH "fonts/BlockMonoFont/BlockMono-Bold.ttf"
-#define FONT_PT 100
+#define FONT_PT 20
 #define LOGO_PATH "art/sprites/LOGO.jpg"
+
+enum gameMode {
+    LOADING_SCREEN,
+    START_MENU,
+    EXPLORATION,
+    DIALOGUE,
+    BATTLE
+};
 
 struct Window_Info {SDL_Window* Window; SDL_Rect Rect; };
 struct Texture_Info { SDL_Texture* Texture; SDL_Rect Rect; };
@@ -33,12 +42,14 @@ struct Window_Info global_Window = {.Window = NULL, .Rect = {0, 0,
 // Main renderer and texture
 SDL_Renderer* global_Renderer = NULL;
 
-
 TTF_Font* global_Font = NULL;
+
+// Shows what 'part' of the game we are in
+enum gameMode global_Game_Mode = LOADING_SCREEN;
 
 // Color constants
 const SDL_Color White = {255, 255, 255};
-const SDL_Color Black = {255, 0, 0, 255};
+const SDL_Color Black = {0, 0, 0, 255};
 
 void center_Rect(SDL_Rect* to_Be_Centered) {
     to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2);
@@ -89,22 +100,13 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     SDL_FreeSurface(temp_surface);
 }
 
-int main(int argc, char** argv) {
+int main() {
     init();
 
-    // The main background texture
-    struct Texture_Info global_Background_Texture = {.Texture=NULL};
-    global_Background_Texture.Texture =
-        SDL_CreateTexture(global_Renderer,
-                SDL_PIXELFORMAT_RGB888,
-                SDL_TEXTUREACCESS_TARGET, global_Window.Rect.w,
-                global_Window.Rect.h);
-    if (global_Background_Texture.Texture == NULL) {
-        fprintf(stderr, "Unable to create background texture: %s\n", SDL_GetError()); 
-        exit(1);
-    }
+// 
+// The LoadingScreen variables and initialization 
+// 
 
-    // SDL_Texture* Message_Texture = NULL;
     struct Texture_Info Loading_Mesage;
     Loading_Mesage.Texture = NULL;
 
@@ -116,14 +118,14 @@ int main(int argc, char** argv) {
     Loading_BUS_Logo.Rect.w = 200;
     center_Rect(&Loading_BUS_Logo.Rect);
         
-    Render_Text("Loading...", global_Font, White, &Loading_Mesage);
-    
+    Render_Text("Press any key to start", global_Font, White, &Loading_Mesage);
 
-    if ( SDL_SetTextureColorMod(global_Background_Texture.Texture, Black.r, Black.g, Black.b) < 0) {
-        fprintf(stderr, "Error setting Background color: %s\n",
-                SDL_GetError());
-        exit(1);
-    }
+
+    // For the Game-Start screen 
+    //
+    //
+
+    //
 
     int quit = 0;
     SDL_Event currentEvent;
@@ -132,33 +134,62 @@ int main(int argc, char** argv) {
             if (currentEvent.type == SDL_QUIT) {
                 quit = 1;
             }
+            if (currentEvent.type == SDL_KEYDOWN) {
+                global_Game_Mode = START_MENU;
+            }
         }
-
-        SDL_MaximizeWindow(global_Window.Window);
-
         SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
-
-        center_Rect(&Loading_Mesage.Rect);
-        Loading_Mesage.Rect.y += (global_Window.Rect.h / 4);
-
-        center_Rect(&Loading_BUS_Logo.Rect);
 
         // Basically clearing then re-doing each frame 
         SDL_RenderClear(global_Renderer);
+        
+        // Finding out what game mode we are in, and there is a goto statement
+        // for each
+        switch (global_Game_Mode) {
+            case LOADING_SCREEN:
+                goto LoadingScreen;
+                break;
+            case START_MENU:
+                goto StartMenu;
+                break;
+            case DIALOGUE:
+                goto Dialogue;
+                break;
+            case EXPLORATION:
+                goto Exploration;
+                break;
+            case BATTLE:
+                goto Battle;
+                break;
+        }
+        
+LoadingScreen:
+        center_Rect(&Loading_BUS_Logo.Rect);
+        center_Rect(&Loading_Mesage.Rect);
+        Loading_Mesage.Rect.y += (global_Window.Rect.h / 4);
 
         // Background image
         SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
-
         SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
+        goto displayFrame;
 
+StartMenu:
+        goto displayFrame;
+        
+Dialogue:
+        goto displayFrame;
+        
+Exploration:
+        goto displayFrame;
+        
+Battle:
+        goto displayFrame;
+        
+displayFrame:    
         SDL_RenderPresent(global_Renderer);
     }
 
-    printf("Goodbye!\n");
-
     TTF_CloseFont(global_Font);
-    SDL_DestroyTexture(global_Background_Texture.Texture);
-    global_Background_Texture.Texture = NULL;
     SDL_DestroyRenderer(global_Renderer);
     global_Renderer = NULL;
     SDL_DestroyWindow(global_Window.Window);
