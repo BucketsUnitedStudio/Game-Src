@@ -1,6 +1,5 @@
 #define SDL_MAIN_HANDLED
 
-#include <sys/ucontext.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_error.h>
@@ -90,7 +89,7 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     SDL_FreeSurface(temp_surface);
 }
 
-int main() {
+int main(int argc, char** argv) {
     init();
 
     // The main background texture
