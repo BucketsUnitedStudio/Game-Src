@@ -1,3 +1,6 @@
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_timer.h>
+#include <time.h>
 #define SDL_MAIN_HANDLED
 
 // #include <sys/ucontext.h>
@@ -16,6 +19,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #define INITIAL_WIDTH 800
 #define INITIAL_HEIGHT 800
@@ -43,6 +48,7 @@ struct Window_Info global_Window = {.Window = NULL, .Rect = {0, 0,
 SDL_Renderer* global_Renderer = NULL;
 
 TTF_Font* global_Font = NULL;
+TTF_Font* global_Font_Title = NULL;
 
 // Shows what 'part' of the game we are in
 enum gameMode global_Game_Mode = LOADING_SCREEN;
@@ -100,6 +106,21 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     SDL_FreeSurface(temp_surface);
 }
 
+void* length_Of_Frame(void* fps_wanted) {
+    // This is 1000 milliseconds divided by 60 frames, so it should give the
+    // (truncated/ rounded) amount of time per frame for 60fps
+
+    int frames_per_second = 1000 / 60;
+    SDL_Delay(frames_per_second);
+
+    return NULL;
+}
+
+void* increment_var(int* var) {
+    *var +=1;
+    return NULL;
+}
+
 int main() {
     init();
 
@@ -125,17 +146,26 @@ int main() {
     //
     //
 
+    struct Texture_Info game_Title;
+    Render_Text("Recollection", global_Font_Title, White, &game_Title);
     //
+
+    int animation_stage = 0;
+    pthread_t frame_cap_thread;
 
     int quit = 0;
     SDL_Event currentEvent;
     while (quit != 1) {
+
+        pthread_create(&frame_cap_thread, NULL, &length_Of_Frame, NULL);
+
         while( SDL_PollEvent(&currentEvent) != 0 ) {
             if (currentEvent.type == SDL_QUIT) {
                 quit = 1;
             }
-            if (currentEvent.type == SDL_KEYDOWN) {
+            if ((currentEvent.type == SDL_KEYDOWN) && (global_Game_Mode == LOADING_SCREEN)) {
                 global_Game_Mode = START_MENU;
+                // SDL_AddTimer(2000, SDL_TimerCallback callback, void *param);
             }
         }
         SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
@@ -174,6 +204,10 @@ LoadingScreen:
         goto displayFrame;
 
 StartMenu:
+        center_Rect(&game_Title.Rect);
+        game_Title.Rect.y -= global_Window.Rect.h / 4;
+        
+        SDL_RenderCopy(global_Renderer, game_Title.Texture, NULL, &game_Title.Rect);
         goto displayFrame;
         
 Dialogue:
@@ -194,6 +228,8 @@ displayFrame:
     global_Renderer = NULL;
     SDL_DestroyWindow(global_Window.Window);
     global_Window.Window = NULL;
+
+    pthread_join(frame_cap_thread, NULL);
 }
 
 
@@ -234,7 +270,7 @@ void init() {
     // Defining and checking the global_Renderer variable
     global_Renderer = SDL_CreateRenderer(global_Window.Window, -1, SDL_RENDERER_ACCELERATED);
 
-    // Loading the default font for the game (font can be changed, this one is
+    // Loading the default fonts for the game (font can be changed, this one is
     // just a placeholder)
     {
         int temp = TTF_Init();
@@ -243,12 +279,12 @@ void init() {
             exit(1);
         }
 
-        char* global_Font_Path = FONT_PATH;
-        global_Font = TTF_OpenFont(global_Font_Path, FONT_PT);
+        global_Font = TTF_OpenFont(FONT_PATH, FONT_PT);
+        global_Font_Title = TTF_OpenFont(FONT_PATH, FONT_PT+20);
 
-        if (global_Font == NULL) {
+        if ((global_Font == NULL) || (global_Font_Title == NULL)) {
             fprintf(stderr, "Unable to open font file %s: %s\n",
-                    global_Font_Path, TTF_GetError());
+                    FONT_PATH, TTF_GetError());
         }
     }
 }
