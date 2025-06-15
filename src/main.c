@@ -20,7 +20,7 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
+// #include <pthread.h>
 
 #define INITIAL_WIDTH 800
 #define INITIAL_HEIGHT 800
@@ -58,8 +58,7 @@ const SDL_Color White = {255, 255, 255};
 const SDL_Color Black = {0, 0, 0, 255};
 
 void center_Rect(SDL_Rect* to_Be_Centered) {
-    to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2);
-    to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
+    to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2); to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
 }
 
 // Just Initializing a lot of stuff, and error checking for the most part
@@ -151,13 +150,13 @@ int main(int argc, char** argv) {
     //
 
     int animation_stage = 0;
-    pthread_t frame_cap_thread;
+    // pthread_t frame_cap_thread;
 
     int quit = 0;
     SDL_Event currentEvent;
     while (quit != 1) {
 
-        pthread_create(&frame_cap_thread, NULL, &length_Of_Frame, NULL);
+        // pthread_create(&frame_cap_thread, NULL, &length_Of_Frame, NULL);
 
         while( SDL_PollEvent(&currentEvent) != 0 ) {
             if (currentEvent.type == SDL_QUIT) {
@@ -229,7 +228,7 @@ displayFrame:
     SDL_DestroyWindow(global_Window.Window);
     global_Window.Window = NULL;
 
-    pthread_join(frame_cap_thread, NULL);
+    // pthread_join(frame_cap_thread, NULL);
 }
 
 
