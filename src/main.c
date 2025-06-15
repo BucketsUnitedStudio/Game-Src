@@ -121,7 +121,7 @@ void* increment_var(int* var) {
     return NULL;
 }
 
-int main() {
+int main(int argc, char** argv) {
     init();
 
 // 
