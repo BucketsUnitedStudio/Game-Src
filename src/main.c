@@ -1,6 +1,6 @@
 #include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_timer.h>
-#include <time.h>
 #define SDL_MAIN_HANDLED
 
 // #include <sys/ucontext.h>
@@ -20,7 +20,6 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
-// #include <pthread.h>
 
 #define INITIAL_WIDTH 800
 #define INITIAL_HEIGHT 800
@@ -105,7 +104,7 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     SDL_FreeSurface(temp_surface);
 }
 
-void* length_Of_Frame(void* fps_wanted) {
+SDL_ThreadFunction length_Of_Frame(void* fps_wanted) {
     // This is 1000 milliseconds divided by 60 frames, so it should give the
     // (truncated/ rounded) amount of time per frame for 60fps
 

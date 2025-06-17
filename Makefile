@@ -15,3 +15,6 @@ run:
 
 windows:
 	gcc $(SRC_FILE) -o $(SRC_EXEC) $(WIN_FLAGS)
+
+crosscomp:
+	x86_64-w64-mingw32-gcc $(SRC_FILE) -o $(SRC_EXEC).win.exe -mwindows -static -static-libgcc -L/usr/x86_64-w64-mingw32/static/lib/ $(shell x86_64-w64-mingw32-pkg-config --cflags --libs --static sdl2 SDL2_image SDL2_ttf) 
