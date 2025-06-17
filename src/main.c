@@ -27,6 +27,7 @@
 #define FONT_PATH "fonts/BlockMonoFont/BlockMono-Bold.ttf"
 #define FONT_PT 20
 #define LOGO_PATH "art/sprites/LOGO.jpg"
+#define FPS_LIMIT 60
 
 enum gameMode {
     LOADING_SCREEN,
@@ -104,7 +105,7 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     SDL_FreeSurface(temp_surface);
 }
 
-SDL_ThreadFunction length_Of_Frame(void* fps_wanted) {
+int length_Of_Frame(void * fps) {
     // This is 1000 milliseconds divided by 60 frames, so it should give the
     // (truncated/ rounded) amount of time per frame for 60fps
 
@@ -149,7 +150,9 @@ int main(int argc, char** argv) {
     //
 
     int animation_stage = 0;
-    // pthread_t frame_cap_thread;
+    int fps_limit = FPS_LIMIT;
+    int thread_exit_status = 0;
+    SDL_Thread* frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
 
     int quit = 0;
     SDL_Event currentEvent;
@@ -219,6 +222,8 @@ Battle:
         
 displayFrame:    
         SDL_RenderPresent(global_Renderer);
+
+        SDL_WaitThread(frame_cap_thread, int *status);
     }
 
     TTF_CloseFont(global_Font);
