@@ -1,6 +1,7 @@
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_timer.h>
+#include <stdint.h>
 #define SDL_MAIN_HANDLED
 
 // #include <sys/ucontext.h>
@@ -112,13 +113,9 @@ int length_Of_Frame(void * fps) {
     int frames_per_second = 1000 / 60;
     SDL_Delay(frames_per_second);
 
-    return NULL;
+    return 0;
 }
 
-void* increment_var(int* var) {
-    *var +=1;
-    return NULL;
-}
 
 int main(int argc, char** argv) {
     init();
@@ -147,18 +144,24 @@ int main(int argc, char** argv) {
 
     struct Texture_Info game_Title;
     Render_Text("Recollection", global_Font_Title, White, &game_Title);
-    //
 
+
+
+    struct Texture_Info starting_menus[3];
+    Render_Text("Start", global_Font_Title, White, &starting_menus[0]);
+    Render_Text("Amnesia", global_Font_Title, White, &starting_menus[1]);
+    Render_Text("Settings", global_Font_Title, White, &starting_menus[2]);
+    
     int animation_stage = 0;
     int fps_limit = FPS_LIMIT;
-    int thread_exit_status = 0;
-    SDL_Thread* frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
+    SDL_Thread* frame_cap_thread;
 
     int quit = 0;
     SDL_Event currentEvent;
-    while (quit != 1) {
 
-        // pthread_create(&frame_cap_thread, NULL, &length_Of_Frame, NULL);
+
+    while (quit != 1) {
+        frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
 
         while( SDL_PollEvent(&currentEvent) != 0 ) {
             if (currentEvent.type == SDL_QUIT) {
@@ -166,7 +169,6 @@ int main(int argc, char** argv) {
             }
             if ((currentEvent.type == SDL_KEYDOWN) && (global_Game_Mode == LOADING_SCREEN)) {
                 global_Game_Mode = START_MENU;
-                // SDL_AddTimer(2000, SDL_TimerCallback callback, void *param);
             }
         }
         SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
@@ -209,6 +211,15 @@ StartMenu:
         game_Title.Rect.y -= global_Window.Rect.h / 4;
         
         SDL_RenderCopy(global_Renderer, game_Title.Texture, NULL, &game_Title.Rect);
+
+        center_Rect(&starting_menus[0].Rect);
+        starting_menus[1].Rect = starting_menus[0].Rect;
+        starting_menus[1].Rect.y += global_Window.Rect.h/6;
+        starting_menus[2].Rect = starting_menus[0].Rect;
+        starting_menus[2].Rect.y += global_Window.Rect.h/3;
+        for (int i = 0; i<=2; i++) {
+            SDL_RenderCopy(global_Renderer, starting_menus[i].Texture, NULL, &starting_menus[i].Rect);
+        }
         goto displayFrame;
         
 Dialogue:
@@ -223,7 +234,7 @@ Battle:
 displayFrame:    
         SDL_RenderPresent(global_Renderer);
 
-        SDL_WaitThread(frame_cap_thread, int *status);
+        SDL_WaitThread(frame_cap_thread, NULL);
     }
 
     TTF_CloseFont(global_Font);
@@ -231,8 +242,6 @@ displayFrame:
     global_Renderer = NULL;
     SDL_DestroyWindow(global_Window.Window);
     global_Window.Window = NULL;
-
-    // pthread_join(frame_cap_thread, NULL);
 }
 
 
