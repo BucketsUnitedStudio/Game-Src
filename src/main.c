@@ -1,3 +1,4 @@
+#include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_timer.h>
@@ -37,6 +38,16 @@ enum gameMode {
     DIALOGUE,
     BATTLE
 };
+
+enum directions {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+    SELECT,
+    NONE
+} user_inputs;
+
 
 struct Window_Info {SDL_Window* Window; SDL_Rect Rect; };
 struct Texture_Info { SDL_Texture* Texture; SDL_Rect Rect; };
@@ -159,6 +170,10 @@ int main(int argc, char** argv) {
     int quit = 0;
     SDL_Event currentEvent;
 
+    int selected_menu = 0;
+    user_inputs = NONE;
+
+    SDL_bool user_pressed_select = SDL_FALSE;
 
     while (quit != 1) {
         frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
@@ -169,6 +184,28 @@ int main(int argc, char** argv) {
             }
             if ((currentEvent.type == SDL_KEYDOWN) && (global_Game_Mode == LOADING_SCREEN)) {
                 global_Game_Mode = START_MENU;
+            }
+            if (currentEvent.type == SDL_KEYDOWN) {
+                global_Game_Mode = (global_Game_Mode == LOADING_SCREEN) ? START_MENU : global_Game_Mode;
+                switch (currentEvent.key.keysym.sym) {
+                    case SDLK_UP:
+                        user_inputs = UP;
+                        break;
+                    case SDLK_DOWN:
+                        user_inputs = DOWN;
+                        break;
+                    case SDLK_LEFT:
+                        user_inputs = LEFT;
+                        break;
+                    case SDLK_RIGHT:
+                        user_inputs = RIGHT;
+                        break;
+                    case SDLK_SPACE:
+                        user_inputs = SELECT;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
@@ -220,6 +257,27 @@ StartMenu:
         for (int i = 0; i<=2; i++) {
             SDL_RenderCopy(global_Renderer, starting_menus[i].Texture, NULL, &starting_menus[i].Rect);
         }
+    
+        switch (user_inputs) {
+            case UP:
+                selected_menu = (selected_menu + 3 - 1) % 3;
+                user_inputs = NONE;
+                break;
+            case DOWN:
+                selected_menu = (selected_menu + 1) % 3;
+                user_inputs = NONE;
+                break;
+            case LEFT:
+                global_Game_Mode = LOADING_SCREEN;
+                user_inputs = NONE;
+                break;
+            default:
+                break;
+        }
+
+        SDL_SetRenderDrawColor(global_Renderer, White.r, White.g, White.b, White.a);
+        SDL_RenderDrawRect(global_Renderer, &starting_menus[selected_menu].Rect);
+        SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
         goto displayFrame;
         
 Dialogue:
