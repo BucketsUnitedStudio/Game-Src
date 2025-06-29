@@ -5,7 +5,6 @@
 #include <stdint.h>
 #define SDL_MAIN_HANDLED
 
-// #include <sys/ucontext.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_error.h>
@@ -34,6 +33,8 @@
 enum gameMode {
     LOADING_SCREEN,
     START_MENU,
+    SETTINGS,
+    CONFIRMATION,
     EXPLORATION,
     DIALOGUE,
     BATTLE
@@ -66,11 +67,18 @@ TTF_Font* global_Font_Title = NULL;
 enum gameMode global_Game_Mode = LOADING_SCREEN;
 
 // Color constants
-const SDL_Color White = {255, 255, 255};
+const SDL_Color White = {255, 255, 255, 255};
+const SDL_Color Grey = {128, 128, 128, 255};
 const SDL_Color Black = {0, 0, 0, 255};
+const SDL_Color Red = {255, 0, 0, 255};
 
 void center_Rect(SDL_Rect* to_Be_Centered) {
     to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2); to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
+}
+
+void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered) {
+    to_Be_Centered->x = anchor->x + (anchor->w - to_Be_Centered->w) / 2;
+    to_Be_Centered->y = anchor->y + (anchor->h - to_Be_Centered->h) / 2;
 }
 
 // Just Initializing a lot of stuff, and error checking for the most part
@@ -115,6 +123,45 @@ void Render_Image(const char* path, SDL_Texture** Texture) {
     }
 
     SDL_FreeSurface(temp_surface);
+}
+
+void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info* render_target, Sint32 border_width, Sint32 padding) {
+    render_target->Rect.y = render_target->Rect.x = 0;
+    border_width = (border_width == 0) ? 4 : border_width;
+    padding = (padding == 0) ? 4 : padding;
+
+    if (render_target->Texture != NULL)
+    {SDL_DestroyTexture(render_target->Texture);
+        render_target->Texture=NULL;}
+
+    render_target->Rect.w = src->Rect.w + 2*(border_width + padding);
+    render_target->Rect.h = src->Rect.h + 2*(border_width + padding);
+
+    SDL_Rect middle_Rect = {
+        border_width, border_width,
+        render_target->Rect.w - 2 * (border_width),
+        render_target->Rect.h - 2 * (border_width),
+    };
+
+
+    render_target->Texture = SDL_CreateTexture(global_Renderer,
+            SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
+            render_target->Rect.w, render_target->Rect.h);
+
+    if (render_target->Texture == NULL) {
+        perror("Couldn't create render target texture");
+        exit(1);
+    }
+
+    SDL_SetRenderTarget(global_Renderer, render_target->Texture);
+    SDL_SetRenderDrawColor(global_Renderer, White.r, White.g, White.b, White.a);
+    SDL_RenderFillRect(global_Renderer, NULL);
+
+    SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
+    SDL_RenderFillRect(global_Renderer,&middle_Rect);
+
+    SDL_SetRenderTarget(global_Renderer, NULL);
+    SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
 }
 
 int length_Of_Frame(void * fps) {
@@ -162,6 +209,16 @@ int main(int argc, char** argv) {
     Render_Text("Start", global_Font_Title, White, &starting_menus[0]);
     Render_Text("Amnesia", global_Font_Title, White, &starting_menus[1]);
     Render_Text("Settings", global_Font_Title, White, &starting_menus[2]);
+
+    struct Texture_Info game_confirmation_question;
+    struct Texture_Info game_confirmation_answers[2];
+    Render_Text("Are you sure you want to do this?", global_Font, White, &game_confirmation_question);
+    Render_Text("No.", global_Font, White, &game_confirmation_answers[0]);
+    Render_Text("Yes.", global_Font, White, &game_confirmation_answers[1]);
+
+    struct Texture_Info text_highlight;
+    int text_highlight_index = 0;
+
     
     int animation_stage = 0;
     int fps_limit = FPS_LIMIT;
@@ -174,6 +231,7 @@ int main(int argc, char** argv) {
     user_inputs = NONE;
 
     SDL_bool user_pressed_select = SDL_FALSE;
+    SDL_bool key_pressed = SDL_FALSE;
 
     while (quit != 1) {
         frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
@@ -182,21 +240,27 @@ int main(int argc, char** argv) {
             if (currentEvent.type == SDL_QUIT) {
                 quit = 1;
             }
-            if ((currentEvent.type == SDL_KEYDOWN) && (global_Game_Mode == LOADING_SCREEN)) {
-                global_Game_Mode = START_MENU;
-            }
             if (currentEvent.type == SDL_KEYDOWN) {
-                global_Game_Mode = (global_Game_Mode == LOADING_SCREEN) ? START_MENU : global_Game_Mode;
+                user_inputs = NONE;
+                key_pressed = SDL_TRUE;
                 switch (currentEvent.key.keysym.sym) {
+                    case SDLK_k:
+                    case SDLK_w:
                     case SDLK_UP:
                         user_inputs = UP;
                         break;
+                    case SDLK_j:
+                    case SDLK_s:
                     case SDLK_DOWN:
                         user_inputs = DOWN;
                         break;
+                    case SDLK_h:
+                    case SDLK_a:
                     case SDLK_LEFT:
                         user_inputs = LEFT;
                         break;
+                    case SDLK_l:
+                    case SDLK_d:
                     case SDLK_RIGHT:
                         user_inputs = RIGHT;
                         break;
@@ -222,6 +286,12 @@ int main(int argc, char** argv) {
             case START_MENU:
                 goto StartMenu;
                 break;
+            case SETTINGS:
+                goto Settings;
+                break;
+            case CONFIRMATION:
+                goto Confirmation;
+                break;
             case DIALOGUE:
                 goto Dialogue;
                 break;
@@ -234,6 +304,11 @@ int main(int argc, char** argv) {
         }
         
 LoadingScreen:
+        if (key_pressed == SDL_TRUE) {
+            global_Game_Mode = START_MENU;
+            user_inputs = NONE;
+            goto StartMenu;
+        }
         center_Rect(&Loading_BUS_Logo.Rect);
         center_Rect(&Loading_Mesage.Rect);
         Loading_Mesage.Rect.y += (global_Window.Rect.h / 4);
@@ -271,6 +346,30 @@ StartMenu:
                 global_Game_Mode = LOADING_SCREEN;
                 user_inputs = NONE;
                 break;
+
+            case RIGHT:
+            case SELECT:
+                // Select that game menu
+                user_inputs = NONE;
+                switch (selected_menu) {
+                    case (0):
+                        //Start game from where you left off
+                        global_Game_Mode = EXPLORATION;
+                        break;
+                    case (1):
+                        // Restart game from beginning
+                        // quit = 1;
+                        global_Game_Mode = CONFIRMATION;
+                        // Delete file with save data
+                        break;
+                    case (2):
+                        // Go to setting page
+                        global_Game_Mode = SETTINGS;
+                        break;
+                    default:
+                        //IDK, error
+                        break;
+                }
             default:
                 break;
         }
@@ -284,8 +383,56 @@ Dialogue:
         goto displayFrame;
         
 Exploration:
+
         goto displayFrame;
+
+Settings:
+        goto displayFrame;
+
+Confirmation:
+        SDL_RenderClear(global_Renderer);
         
+        center_Rect(&game_confirmation_question.Rect);
+        SDL_RenderCopy(global_Renderer, game_confirmation_question.Texture, NULL, &game_confirmation_question.Rect);
+        game_confirmation_answers[0].Rect.x = game_confirmation_question.Rect.x;
+        game_confirmation_answers[0].Rect.y = game_confirmation_question.Rect.y + 100;
+
+        game_confirmation_answers[1].Rect.x = game_confirmation_question.Rect.x + game_confirmation_question.Rect.w - game_confirmation_answers[1].Rect.w;
+        game_confirmation_answers[1].Rect.y = game_confirmation_question.Rect.y + 100;
+
+        if ((user_inputs == RIGHT) || (user_inputs == LEFT)) {
+            text_highlight_index = (text_highlight_index+1) % 2;
+            user_inputs = NONE;
+        }
+
+        // Here
+        createHighlightFromTexture(&game_confirmation_answers[text_highlight_index], &text_highlight, 4, 4);
+        center_Rect_Relative(&game_confirmation_answers[text_highlight_index].Rect, &text_highlight.Rect);
+
+        SDL_RenderCopy(global_Renderer,
+                text_highlight.Texture, NULL,
+                &text_highlight.Rect);
+
+        SDL_RenderCopy(global_Renderer,
+                game_confirmation_answers[0].Texture, NULL,
+                &game_confirmation_answers[0].Rect);
+
+        SDL_RenderCopy(global_Renderer,
+                game_confirmation_answers[1].Texture, NULL,
+                &game_confirmation_answers[1].Rect);
+
+        if (user_inputs == SELECT) {
+            if (text_highlight_index == 0) {
+                user_inputs = NONE;
+                SDL_RenderClear(global_Renderer);
+                global_Game_Mode = START_MENU;
+                goto StartMenu;
+            }
+            quit = 1;
+        }
+
+        goto displayFrame;
+
 Battle:
         goto displayFrame;
         
