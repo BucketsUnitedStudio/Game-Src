@@ -72,6 +72,8 @@ const SDL_Color Grey = {128, 128, 128, 255};
 const SDL_Color Black = {0, 0, 0, 255};
 const SDL_Color Red = {255, 0, 0, 255};
 
+char** gGame_Settings = NULL;
+
 void center_Rect(SDL_Rect* to_Be_Centered) {
     to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2); to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
 }
@@ -502,6 +504,105 @@ void init() {
         if ((global_Font == NULL) || (global_Font_Title == NULL)) {
             fprintf(stderr, "Unable to open font file %s: %s\n",
                     FONT_PATH, TTF_GetError());
+        }
+    }
+
+    struct possible_keys {
+        char* key_name;
+        char* keysym;
+        SDL_bool enabled;
+    };
+
+    // Basic Settings
+    struct {
+        struct possible_keys NORTH;
+        struct possible_keys SOUTH;
+        struct possible_keys WEST;
+        struct possible_keys EAST;
+        struct possible_keys SELECT;
+    } Keybind_Settings;
+
+    // Loading save data from file
+    FILE* save_file_fd = NULL;
+    save_file_fd = fopen("save_file.csv", "a+");
+    if (save_file_fd == NULL) {
+        perror("Unable to open save file");
+        exit(1);
+    }
+
+    struct {
+        enum {
+            NONE = -1,
+            KEYBINDS,
+            MISC,
+        } mode;
+        // Make sure to allocate enough char* pointers
+        char* strings[3];
+    } settings_file;
+
+    settings_file.mode = NONE;
+    settings_file.strings[0] = "[KEYBINDS]";
+    settings_file.strings[1] = "[MISC]";
+    settings_file.strings[2] = NULL;
+
+    // Should initialize all values to zero
+    char line_buffer[256] = { 0 };
+    char temp_buffer[256] = { 0 };
+    
+    while(
+            memset(line_buffer, 0, 256) &&
+            memset(temp_buffer, 0, 256) &&
+            fgets(line_buffer, 255, save_file_fd)) {
+
+        
+        for (int i=0, j=0; i < strlen(line_buffer); i++) {
+            temp_buffer[j] = line_buffer[i];
+            j = (line_buffer[i] != ' ') ? j + 1 : j;
+        }
+
+        strcpy(line_buffer, temp_buffer);
+
+        printf("%s", line_buffer);
+
+
+        // Setting the mode depending on what header (the [SOME_LABEL]) is
+        {
+            register int i=0;
+            while (settings_file.strings[i]) {
+                if (!strncmp(settings_file.strings[i], line_buffer, strlen(settings_file.strings[i]))) {
+                    settings_file.mode = i;
+                } 
+                i++;
+            }
+        }
+
+        struct {
+            // This is intentional so that the last value of the array will
+            // always be a NULL value
+            char* keys[4];
+            char* keys_end;
+        } Keybind_Settings_dict;
+        Keybind_Settings_dict.keys[0] = "NORTH";
+        Keybind_Settings_dict.keys[1] = "SOUTH";
+        Keybind_Settings_dict.keys[2] = "WEST";
+        Keybind_Settings_dict.keys[3] = "EAST";
+        Keybind_Settings_dict.keys_end = " ";
+
+        switch (settings_file.mode) {
+            case KEYBINDS:
+                // Search for keybind phrases
+
+                for (register int i; Keybind_Settings_dict.keys[i]; i++) {
+                    register int len = strlen(Keybind_Settings_dict.keys[i]);
+                    if (!strncmp(Keybind_Settings_dict.keys[i], line_buffer, len)) {}
+                }
+                break;
+            case MISC:
+                //Search for miscellaneous phrases
+                break;
+            case NONE:
+            default:
+                break;
         }
     }
 }
