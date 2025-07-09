@@ -75,36 +75,79 @@ const SDL_Color Red = {255, 0, 0, 255};
 
 char** gGame_Settings = NULL;
 
-void center_Rect(SDL_Rect* to_Be_Centered) {
+inline void center_Rect(SDL_Rect* to_Be_Centered) {
   to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2); to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
 }
 
-void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered) {
+inline void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered) {
   to_Be_Centered->x = anchor->x + (anchor->w - to_Be_Centered->w) / 2;
   to_Be_Centered->y = anchor->y + (anchor->h - to_Be_Centered->h) / 2;
 }
 
-int findIndexOfChar(char* str, char character) {
-  for (register int letter=0; str[letter]; letter++) {
-    if (str[letter] == '=') {
-      return letter;
+inline int findIndexOfChar(char* str, char character, int occurrence_num) {
+  if (occurrence_num < 0)
+    occurrence_num = 0;
+  int count=0;
+  for (int letter=0; str[letter]; letter++) {
+    if (str[letter] == character) {
+      if (occurrence_num == 0) {
+        return letter;
+      }
+      occurrence_num--;
     }
+    count = letter;
   }
+  if (occurrence_num > 0) {return strlen(str)-1;}
   return -1;
 }
 
-struct array_and_len{char** array, len;};
-struct array_and_len* parse_list(char* str, char delimiter){
-  if(!str) {goto Error;}
+inline int frequencyOfChar(char* str, char character) {
+  int len = 0;
   for (int i=0; str[i]; i++) {
-    //
+    if (str[i] == character)
+      len++;
   }
-Error:
-  ;
-  register struct array_and_len* return_value = (malloc(sizeof(struct array_and_len))) ;
-  *return_value = (struct array_and_len) {NULL, -1};
-  // return (struct array_and_len) {NULL, -1};
-  return return_value;
+  return len;
+}
+
+struct array_and_len{
+  char** array;
+  int len;
+};
+
+struct array_and_len* parse_list(char* str, char delimiter){
+  struct array_and_len* buffer = malloc(sizeof(struct array_and_len));
+  *buffer = (struct array_and_len) {NULL, 0};
+
+  if ((!str) || (delimiter == '\0')) goto Error;
+
+  char* str_tmp = strdup(str);
+
+  buffer->len = frequencyOfChar(str_tmp, ',') + 1;
+  if (buffer->len == 1) {
+    buffer->array = &str_tmp;
+    return buffer;
+  }
+
+  buffer->array = calloc((buffer->len)+1, sizeof(char*));
+  buffer->array[buffer->len-1] = NULL;
+
+  buffer->array[0] = str_tmp;
+  for (int i=0, j=1; str_tmp[i]; i++) {
+    if (str_tmp[i] == delimiter) {
+      str_tmp[i] = '\0';
+      buffer->array[j] = &str_tmp[i+1];
+      j++;
+    }
+  }
+
+  return buffer;
+
+Error:;
+  perror("Error parsing the save file");
+  buffer->array = NULL;
+  buffer->len = 0;
+  return buffer;
 }
 
 // Just Initializing a lot of stuff, and error checking for the most part
@@ -634,28 +677,30 @@ void init(void) {
 
 
     switch (settings_file.mode) {
-      case KEYBINDS:
-      // Search for keybind phrases
-        {
-          register int len;
-      
-          for (register int i=0; Keybind_Settings.dict.keys[i]; i++) {
-            len = strlen(Keybind_Settings.dict.keys[i]);
-            register int index=-1;
-            if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer, len)) {
-              index = findIndexOfChar(line_buffer, '=') + 1;
-              int sub_str_len = strlen(&line_buffer[index]);
-              printf("%s\n", &line_buffer[index]);
-            }
-          }
+    case KEYBINDS:;
+    // Search for keybind phrases
+      int len;
+    
+      for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
+        len = strlen(Keybind_Settings.dict.keys[i]);
+        int index=-1;
+        if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer, len)) {
+          index = findIndexOfChar(line_buffer, '=', 0) + 1;
+          int sub_str_len = strlen(&line_buffer[index]);
+
+          line_buffer[strlen(line_buffer)-2] = '\0';
+
+          struct array_and_len* line_array = parse_list(&line_buffer[index+1], ',');
         }
-        break;
-      case MISC:
-        //Search for miscellaneous phrases
-        break;
-      case NONE:
-      default:
-        break;
+      }
+      
+      break;
+    case MISC:
+      //Search for miscellaneous phrases
+      break;
+    case NONE:
+    default:
+      break;
     }
   }
 }

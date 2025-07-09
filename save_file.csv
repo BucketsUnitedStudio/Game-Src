@@ -1,8 +1,8 @@
 [KEYBINDS]
 NORTH = [w, k, UP_ARROW]
 SOUTH = [a, j, DOWN_ARROW]
-EAST = [d, l, LEFT_ARROW]
 WEST = [s, h, RIGHT_ARROW]
+EAST = [d, l, LEFT_ARROW, LAST]
 
 [MISC]
 EASY = 0
