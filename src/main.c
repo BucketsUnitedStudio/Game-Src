@@ -42,14 +42,24 @@ enum gameMode {
 };
 
 enum directions {
-  UP,
+  UP=1,
   DOWN,
   LEFT,
   RIGHT,
   SELECT,
+
   NONE
 } user_inputs;
 
+struct possible_keys {
+  char* key_name;
+  char* keysym;
+  SDL_bool enabled;
+};
+
+struct game_Options {
+  struct possible_keys game_Keybinds[NONE];
+};
 
 struct Window_Info {SDL_Window* Window; SDL_Rect Rect; };
 struct Texture_Info { SDL_Texture* Texture; SDL_Rect Rect; };
@@ -574,133 +584,133 @@ void init(void) {
     }
   }
 
-  struct possible_keys {
-    char* key_name;
-    char* keysym;
-    SDL_bool enabled;
-  };
-
-  // Basic Settings
-  struct {
-    enum {
-      NORTH=0,
-      SOUTH,
-      WEST,
-      EAST,
-      SELECT,
-
-      KEYBIND_SETTINGS_LENGTH
-    };
-    
-    struct possible_keys inputs[KEYBIND_SETTINGS_LENGTH];
-
+  {
+    // Basic Settings
     struct {
-      char* keys[KEYBIND_SETTINGS_LENGTH];
-      char* keys_end;
-    } dict;
-  } Keybind_Settings = {
-    .inputs = {
-      [NORTH]={NULL, NULL, SDL_FALSE},
-      [SOUTH]={NULL, NULL, SDL_FALSE},
-      [WEST]={NULL, NULL, SDL_FALSE},
-      [EAST]={NULL, NULL, SDL_FALSE},
-      [SELECT]={NULL, NULL, SDL_FALSE}
-    },
-    .dict = {
-      .keys[NORTH]="NORTH",
-      .keys[SOUTH]="SOUTH",
-      .keys[WEST]="WEST",
-      .keys[EAST]="EAST",
-      .keys[SELECT]="SELECT",
-      .keys_end="NULL"}
-  };
-
-  struct {
-    enum {
-      NONE = -1,
-      KEYBINDS,
-      MISC,
-
-      ITEM_AMOUNT
-    } mode;
-
-    // Make sure to allocate enough char* pointers
-    char* strings[ITEM_AMOUNT];
-    char* strings_end;
-  } settings_file;
-
-  settings_file.mode = NONE;
-  settings_file.strings[0] = "[KEYBINDS]";
-  settings_file.strings[1] = "[MISC]";
-  settings_file.strings_end = NULL;
-
-  Keybind_Settings.dict.keys[0] = "NORTH";
-  Keybind_Settings.dict.keys[1] = "SOUTH";
-  Keybind_Settings.dict.keys[2] = "WEST";
-  Keybind_Settings.dict.keys[3] = "EAST";
-  Keybind_Settings.dict.keys_end = NULL; 
-
-  // Loading save data from file
-  FILE* save_file_fd = NULL;
-  save_file_fd = fopen("save_file.csv", "a+");
-  if (save_file_fd == NULL) {
-    perror("Unable to open save file");
-    exit(1);
-  }
-
-  // Should initialize all values to zero
-  char line_buffer[256] = { 0 };
-  char temp_buffer[256] = { 0 };
+      enum {
+        NORTH=0,
+        SOUTH,
+        WEST,
+        EAST,
+        SELECT,
   
-  while(
-      memset(line_buffer, 0, 256) &&
-      memset(temp_buffer, 0, 256) &&
-      fgets(line_buffer, 255, save_file_fd)) {
-    
-    for (int i=0, j=0; i < strlen(line_buffer); i++) {
-      temp_buffer[j] = line_buffer[i];
-      j = (line_buffer[i] != ' ') ? j + 1 : j;
+        KEYBIND_SETTINGS_LENGTH
+      };
+      
+      struct possible_keys inputs[KEYBIND_SETTINGS_LENGTH];
+  
+      struct {
+        char* keys[KEYBIND_SETTINGS_LENGTH];
+        char* keys_end;
+      } dict;
+    } Keybind_Settings = {
+      .inputs = {
+        [NORTH]={NULL, NULL, SDL_FALSE},
+        [SOUTH]={NULL, NULL, SDL_FALSE},
+        [WEST]={NULL, NULL, SDL_FALSE},
+        [EAST]={NULL, NULL, SDL_FALSE},
+        [SELECT]={NULL, NULL, SDL_FALSE}
+      },
+      .dict = {
+        .keys[NORTH]="NORTH",
+        .keys[SOUTH]="SOUTH",
+        .keys[WEST]="WEST",
+        .keys[EAST]="EAST",
+        .keys[SELECT]="SELECT",
+        .keys_end="NULL"}
+    };
+  
+    struct {
+      enum {
+        NONE = -1,
+        KEYBINDS,
+        MISC,
+  
+        ITEM_AMOUNT
+      } mode;
+  
+      // Make sure to allocate enough char* pointers
+      char* strings[ITEM_AMOUNT];
+      char* strings_end;
+    } settings_file;
+  
+    settings_file.mode = NONE;
+    settings_file.strings[0] = "[KEYBINDS]";
+    settings_file.strings[1] = "[MISC]";
+    settings_file.strings_end = NULL;
+  
+    Keybind_Settings.dict.keys[0] = "NORTH";
+    Keybind_Settings.dict.keys[1] = "SOUTH";
+    Keybind_Settings.dict.keys[2] = "WEST";
+    Keybind_Settings.dict.keys[3] = "EAST";
+    Keybind_Settings.dict.keys_end = NULL; 
+  
+    // Loading save data from file
+    FILE* save_file_fd = NULL;
+    save_file_fd = fopen("save_file.csv", "a+");
+    if (save_file_fd == NULL) {
+      perror("Unable to open save file");
+      exit(1);
     }
-
-    strcpy(line_buffer, temp_buffer);
-
-    // Setting the mode depending on what header (the [SOME_LABEL]) is
-    {
-      register int i=0;
-      while (settings_file.strings[i]) {
-        if (!strncmp(settings_file.strings[i], line_buffer, strlen(settings_file.strings[i]))) {
-          settings_file.mode = i;
-        } 
-        i++;
+  
+    // Should initialize all values to zero
+    char line_buffer[256] = { 0 };
+    char temp_buffer[256] = { 0 };
+    
+    while(
+        memset(line_buffer, 0, 256) &&
+        memset(temp_buffer, 0, 256) &&
+        fgets(line_buffer, 255, save_file_fd)) {
+      
+      for (int i=0, j=0; i < strlen(line_buffer); i++) {
+        temp_buffer[j] = line_buffer[i];
+        j = (line_buffer[i] != ' ') ? j + 1 : j;
       }
-    }
-
-
-    switch (settings_file.mode) {
-    case KEYBINDS:;
-    // Search for keybind phrases
-      int len;
-    
-      for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
-        len = strlen(Keybind_Settings.dict.keys[i]);
-        int index=-1;
-        if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer, len)) {
-          index = findIndexOfChar(line_buffer, '=', 0) + 1;
-          int sub_str_len = strlen(&line_buffer[index]);
-
-          line_buffer[strlen(line_buffer)-2] = '\0';
-
-          struct array_and_len* line_array = parse_list(&line_buffer[index+1], ',');
+  
+      strcpy(line_buffer, temp_buffer);
+  
+      // Setting the mode depending on what header (the [SOME_LABEL]) is
+      {
+        register int i=0;
+        while (settings_file.strings[i]) {
+          if (!strncmp(settings_file.strings[i], line_buffer, strlen(settings_file.strings[i]))) {
+            settings_file.mode = i;
+          } 
+          i++;
         }
       }
+  
+  
+      switch (settings_file.mode) {
+      case KEYBINDS:;
+      // Search for keybind phrases
+        int len;
       
-      break;
-    case MISC:
-      //Search for miscellaneous phrases
-      break;
-    case NONE:
-    default:
-      break;
+        for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
+          len = strlen(Keybind_Settings.dict.keys[i]);
+          int index=-1;
+          if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer,
+                len)) {
+            index = findIndexOfChar(line_buffer, '=',
+                0) + 1;
+            int sub_str_len = strlen(&line_buffer[index]);
+  
+            line_buffer[strlen(line_buffer)-2] = '\0';
+  
+            struct array_and_len* line_array =
+              parse_list(&line_buffer[index+1], ',');
+          }
+        }
+        
+        break;
+      case MISC:
+        //Search for miscellaneous phrases
+        break;
+      case NONE:
+      default:
+        break;
+      }
     }
-  }
+    
+}
 }
