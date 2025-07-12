@@ -1,4 +1,6 @@
+#include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_scancode.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_thread.h>
 #include <SDL2/SDL_timer.h>
@@ -53,9 +55,49 @@ enum directions {
 
 struct possible_keys {
   char* key_name;
-  char* keysym;
+  SDL_KeyCode keycode;
   SDL_bool enabled;
 };
+
+#define LAST_DIRECTION NONE
+// Basic Settings
+struct {
+  struct possible_keys inputs[LAST_DIRECTION];
+
+  struct {
+    char* keys[LAST_DIRECTION];
+    char* keys_end;
+  } dict;
+} Keybind_Settings = {
+  .inputs = {
+    [UP-1]={NULL, SDLK_w, SDL_TRUE},
+    [DOWN-1]={NULL, SDLK_s, SDL_TRUE},
+    [LEFT-1]={NULL, SDLK_a, SDL_TRUE},
+    [RIGHT-1]={NULL, SDLK_d, SDL_TRUE},
+    [SELECT-1]={NULL, SDLK_SPACE, SDL_TRUE}
+  },
+  .dict = {
+    .keys[UP-1]="NORTH",
+    .keys[DOWN-1]="SOUTH",
+    .keys[LEFT-1]="WEST",
+    .keys[RIGHT-1]="EAST",
+    .keys[SELECT-1]="SELECT",
+    .keys_end=NULL}
+};
+struct {
+  enum {
+    NO_MODE = -1,
+    KEYBINDS,
+    MISC,
+
+    ITEM_AMOUNT
+  } mode;
+
+  // Make sure to allocate enough char* pointers
+  char* strings[ITEM_AMOUNT];
+  char* strings_end;
+} settings_file;
+
 
 struct game_Options {
   struct possible_keys game_Keybinds[NONE];
@@ -322,35 +364,41 @@ int main(int argc, char** argv) {
       if (currentEvent.type == SDL_KEYDOWN) {
         user_inputs = NONE;
         key_pressed = SDL_TRUE;
-        switch (currentEvent.key.keysym.sym) {
-          case SDLK_k:
-          case SDLK_w:
-          case SDLK_UP:
-            user_inputs = UP;
-            break;
-          case SDLK_j:
-          case SDLK_s:
-          case SDLK_DOWN:
-            user_inputs = DOWN;
-            break;
-          case SDLK_h:
-          case SDLK_a:
-          case SDLK_LEFT:
-            user_inputs = LEFT;
-            break;
-          case SDLK_l:
-          case SDLK_d:
-          case SDLK_RIGHT:
-            user_inputs = RIGHT;
-            break;
-          case SDLK_SPACE:
-            user_inputs = SELECT;
-            break;
-          default:
-            break;
+        // switch (currentEvent.key.keysym.sym) {
+        //   // case SDLK_k:
+        //   // case SDLK_w:
+        //   case SDLK_UP:
+        //     user_inputs = UP;
+        //     break;
+        //   case SDLK_j:
+        //   case SDLK_s:
+        //   case SDLK_DOWN:
+        //     user_inputs = DOWN;
+        //     break;
+        //   case SDLK_h:
+        //   case SDLK_a:
+        //   case SDLK_LEFT:
+        //     user_inputs = LEFT;
+        //     break;
+        //   case SDLK_l:
+        //   case SDLK_d:
+        //   case SDLK_RIGHT:
+        //     user_inputs = RIGHT;
+        //     break;
+        //   case SDLK_SPACE:
+        //     user_inputs = SELECT;
+        //     break;
+        //   default:
+        //     break;
+        // }
+        for (int i=0; i<(SELECT); i++) {
+          if (currentEvent.key.keysym.sym == Keybind_Settings.inputs[i].keycode){
+            user_inputs = i+1;
+            printf("%s\n", Keybind_Settings.inputs[i].key_name);
+          }
         }
       }
-    }
+    } 
     SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
 
     // Basically clearing then re-doing each frame 
@@ -585,54 +633,41 @@ void init(void) {
   }
 
   {
-    // Basic Settings
-    struct {
-      enum {
-        NORTH=0,
-        SOUTH,
-        WEST,
-        EAST,
-        SELECT,
+    // // Basic Settings
+    // struct {
+    //   enum {
+    //     NORTH=0,
+    //     SOUTH,
+    //     WEST,
+    //     EAST,
+    //     SELECT,
   
-        KEYBIND_SETTINGS_LENGTH
-      };
+    //     KEYBIND_SETTINGS_LENGTH
+    //   };
       
-      struct possible_keys inputs[KEYBIND_SETTINGS_LENGTH];
+    //   struct possible_keys inputs[KEYBIND_SETTINGS_LENGTH];
   
-      struct {
-        char* keys[KEYBIND_SETTINGS_LENGTH];
-        char* keys_end;
-      } dict;
-    } Keybind_Settings = {
-      .inputs = {
-        [NORTH]={NULL, NULL, SDL_FALSE},
-        [SOUTH]={NULL, NULL, SDL_FALSE},
-        [WEST]={NULL, NULL, SDL_FALSE},
-        [EAST]={NULL, NULL, SDL_FALSE},
-        [SELECT]={NULL, NULL, SDL_FALSE}
-      },
-      .dict = {
-        .keys[NORTH]="NORTH",
-        .keys[SOUTH]="SOUTH",
-        .keys[WEST]="WEST",
-        .keys[EAST]="EAST",
-        .keys[SELECT]="SELECT",
-        .keys_end="NULL"}
-    };
+    //   struct {
+    //     char* keys[KEYBIND_SETTINGS_LENGTH];
+    //     char* keys_end;
+    //   } dict;
+    // } Keybind_Settings = {
+    //   .inputs = {
+    //     [NORTH]={NULL, NULL, SDL_FALSE},
+    //     [SOUTH]={NULL, NULL, SDL_FALSE},
+    //     [WEST]={NULL, NULL, SDL_FALSE},
+    //     [EAST]={NULL, NULL, SDL_FALSE},
+    //     [SELECT]={NULL, NULL, SDL_FALSE}
+    //   },
+    //   .dict = {
+    //     .keys[NORTH]="NORTH",
+    //     .keys[SOUTH]="SOUTH",
+    //     .keys[WEST]="WEST",
+    //     .keys[EAST]="EAST",
+    //     .keys[SELECT]="SELECT",
+    //     .keys_end=NULL}
+    // };
   
-    struct {
-      enum {
-        NONE = -1,
-        KEYBINDS,
-        MISC,
-  
-        ITEM_AMOUNT
-      } mode;
-  
-      // Make sure to allocate enough char* pointers
-      char* strings[ITEM_AMOUNT];
-      char* strings_end;
-    } settings_file;
   
     settings_file.mode = NONE;
     settings_file.strings[0] = "[KEYBINDS]";
@@ -685,32 +720,38 @@ void init(void) {
       case KEYBINDS:;
       // Search for keybind phrases
         int len;
+        int index;
+        int found=-1;
       
         for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
           len = strlen(Keybind_Settings.dict.keys[i]);
-          int index=-1;
+          index=-1;
           if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer,
                 len)) {
-            index = findIndexOfChar(line_buffer, '=',
-                0) + 1;
-            int sub_str_len = strlen(&line_buffer[index]);
-  
+            index = findIndexOfChar(line_buffer, '=', 0) + 1;
             line_buffer[strlen(line_buffer)-2] = '\0';
-  
-            struct array_and_len* line_array =
-              parse_list(&line_buffer[index+1], ',');
+            found=i;
+            break;
           }
         }
-        
+        if (found == -1) {break;}
+
+        struct array_and_len* line_array =
+          parse_list(&line_buffer[index+1], ',');
+
+        for (int i=0; i<line_array->len; i++) {
+          Keybind_Settings.inputs[found].enabled = SDL_TRUE;
+          Keybind_Settings.inputs[found].key_name = line_array->array[i];
+          Keybind_Settings.inputs[found].keycode = SDL_GetKeyFromName(line_array->array[i]);
+        }
         break;
       case MISC:
         //Search for miscellaneous phrases
         break;
-      case NONE:
+      case NO_MODE:
       default:
         break;
       }
     }
-    
-}
+  }
 }
