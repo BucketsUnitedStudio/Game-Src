@@ -1,307 +1,7 @@
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_scancode.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_thread.h>
-#include <SDL2/SDL_timer.h>
-#include <stdint.h>
-#include <sys/types.h>
-#define SDL_MAIN_HANDLED
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_audio.h>
-#include <SDL2/SDL_error.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_surface.h>
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <string.h>
-#include <unistd.h>
-
-#define INITIAL_WIDTH 800
-#define INITIAL_HEIGHT 800
-#define WINDOW_NAME "Recollection"
-#define FONT_PATH "fonts/BlockMonoFont/BlockMono-Bold.ttf"
-#define FONT_PT 20
-#define LOGO_PATH "art/sprites/LOGO.jpg"
-#define FPS_LIMIT 60
-
-enum gameMode {
-  LOADING_SCREEN,
-  START_MENU,
-  SETTINGS,
-  CONFIRMATION,
-  EXPLORATION,
-  DIALOGUE,
-  BATTLE
-};
-
-enum directions {
-  UP=1,
-  DOWN,
-  LEFT,
-  RIGHT,
-  SELECT,
-
-  NONE
-} user_inputs;
-
-struct possible_keys {
-  char* key_name;
-  SDL_KeyCode keycode;
-  SDL_bool enabled;
-};
-
-#define LAST_DIRECTION NONE
-// Basic Settings
-struct {
-  struct possible_keys inputs[LAST_DIRECTION];
-
-  struct {
-    char* keys[LAST_DIRECTION];
-    char* keys_end;
-  } dict;
-} Keybind_Settings = {
-  .inputs = {
-    [UP-1]={NULL, SDLK_w, SDL_TRUE},
-    [DOWN-1]={NULL, SDLK_s, SDL_TRUE},
-    [LEFT-1]={NULL, SDLK_a, SDL_TRUE},
-    [RIGHT-1]={NULL, SDLK_d, SDL_TRUE},
-    [SELECT-1]={NULL, SDLK_SPACE, SDL_TRUE}
-  },
-  .dict = {
-    .keys[UP-1]="NORTH",
-    .keys[DOWN-1]="SOUTH",
-    .keys[LEFT-1]="WEST",
-    .keys[RIGHT-1]="EAST",
-    .keys[SELECT-1]="SELECT",
-    .keys_end=NULL}
-};
-struct {
-  enum {
-    NO_MODE = -1,
-    KEYBINDS,
-    MISC,
-
-    ITEM_AMOUNT
-  } mode;
-
-  // Make sure to allocate enough char* pointers
-  char* strings[ITEM_AMOUNT];
-  char* strings_end;
-} settings_file;
-
-
-struct game_Options {
-  struct possible_keys game_Keybinds[NONE];
-};
-
-struct Window_Info {SDL_Window* Window; SDL_Rect Rect; };
-struct Texture_Info { SDL_Texture* Texture; SDL_Rect Rect; };
-
-// Main window
-struct Window_Info global_Window = {.Window = NULL, .Rect = {0, 0,
-  INITIAL_WIDTH, INITIAL_HEIGHT} };
-
-// Main renderer and texture
-SDL_Renderer* global_Renderer = NULL;
-
-TTF_Font* global_Font = NULL;
-TTF_Font* global_Font_Title = NULL;
-
-// Shows what 'part' of the game we are in
-enum gameMode global_Game_Mode = LOADING_SCREEN;
-
-// Color constants
-const SDL_Color White = {255, 255, 255, 255};
-const SDL_Color Grey = {128, 128, 128, 255};
-const SDL_Color Black = {0, 0, 0, 255};
-const SDL_Color Red = {255, 0, 0, 255};
-
-char** gGame_Settings = NULL;
-
-inline void center_Rect(SDL_Rect* to_Be_Centered) {
-  to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2); to_Be_Centered->y = (global_Window.Rect.h / 2) - (to_Be_Centered->h / 2);
-}
-
-inline void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered) {
-  to_Be_Centered->x = anchor->x + (anchor->w - to_Be_Centered->w) / 2;
-  to_Be_Centered->y = anchor->y + (anchor->h - to_Be_Centered->h) / 2;
-}
-
-inline int findIndexOfChar(char* str, char character, int occurrence_num) {
-  if (occurrence_num < 0)
-    occurrence_num = 0;
-  int count=0;
-  for (int letter=0; str[letter]; letter++) {
-    if (str[letter] == character) {
-      if (occurrence_num == 0) {
-        return letter;
-      }
-      occurrence_num--;
-    }
-    count = letter;
-  }
-  if (occurrence_num > 0) {return strlen(str)-1;}
-  return -1;
-}
-
-inline int frequencyOfChar(char* str, char character) {
-  int len = 0;
-  for (int i=0; str[i]; i++) {
-    if (str[i] == character)
-      len++;
-  }
-  return len;
-}
-
-struct array_and_len{
-  char** array;
-  int len;
-};
-
-struct array_and_len* parse_list(char* str, char delimiter){
-  struct array_and_len* buffer = malloc(sizeof(struct array_and_len));
-  *buffer = (struct array_and_len) {NULL, 0};
-
-  if ((!str) || (delimiter == '\0')) goto Error;
-
-  char* str_tmp = strdup(str);
-
-  buffer->len = frequencyOfChar(str_tmp, ',') + 1;
-  if (buffer->len == 1) {
-    buffer->array = &str_tmp;
-    return buffer;
-  }
-
-  buffer->array = calloc((buffer->len)+1, sizeof(char*));
-  buffer->array[buffer->len-1] = NULL;
-
-  buffer->array[0] = str_tmp;
-  for (int i=0, j=1; str_tmp[i]; i++) {
-    if (str_tmp[i] == delimiter) {
-      str_tmp[i] = '\0';
-      buffer->array[j] = &str_tmp[i+1];
-      j++;
-    }
-  }
-
-  return buffer;
-
-Error:;
-  perror("Error parsing the save file");
-  buffer->array = NULL;
-  buffer->len = 0;
-  return buffer;
-}
-
-// Just Initializing a lot of stuff, and error checking for the most part
-void init(void);
-
-void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color, struct Texture_Info* Texture) {
-  int text_len = strlen(text);
-  SDL_Surface* temp_surface = TTF_RenderText_Solid(font , text , text_color);
-
-  SDL_DestroyTexture(Texture->Texture);
-
-  Texture->Texture = (temp_surface != NULL) ? SDL_CreateTextureFromSurface(global_Renderer, temp_surface): NULL;
-
-  if (Texture->Texture == NULL || (TTF_SizeText(font, text, &Texture->Rect.w, &Texture->Rect.h) < 0) )  {
-    printf("Error creating text texture with the text %s: %s\n", text, TTF_GetError());
-    exit(1);
-  }
-
-  if (TTF_SizeText(font, text, &Texture->Rect.w, &Texture->Rect.h) < 0) {
-    printf("Error creating text texture with the text %s: %s\n", text, TTF_GetError());
-    exit(1);
-  }
-
-  SDL_FreeSurface(temp_surface);
-}
-
-// Loads an image from a path, and creates a texture from it
-void Render_Image(const char* path, SDL_Texture** Texture) {
-  SDL_Surface* temp_surface = IMG_Load(path);
-
-  if (temp_surface == NULL) {
-    fprintf(stderr, "Unable to load the image at %s: %s\n", path, IMG_GetError(  ));
-    exit(1);
-  } 
-
-  SDL_DestroyTexture(*Texture);
-  *Texture = SDL_CreateTextureFromSurface(global_Renderer, temp_surface);
-
-  if (Texture == NULL) {
-    fprintf(stderr, "Could not create a Texture from %s: %s\n", path, SDL_GetError()); 
-    exit(1);
-  }
-
-  SDL_FreeSurface(temp_surface);
-}
-
-void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info* render_target, Sint32 border_width, Sint32 padding) {
-  render_target->Rect.y = render_target->Rect.x = 0;
-  border_width = (border_width == 0) ? 4 : border_width;
-  padding = (padding == 0) ? 4 : padding;
-
-  if (render_target->Texture != NULL)
-  {SDL_DestroyTexture(render_target->Texture);
-    render_target->Texture=NULL;}
-
-  render_target->Rect.w = src->Rect.w + 2*(border_width + padding);
-  render_target->Rect.h = src->Rect.h + 2*(border_width + padding);
-
-  SDL_Rect middle_Rect = {
-    border_width, border_width,
-    render_target->Rect.w - 2 * (border_width),
-    render_target->Rect.h - 2 * (border_width),
-  };
-
-
-  render_target->Texture = SDL_CreateTexture(global_Renderer,
-      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-      render_target->Rect.w, render_target->Rect.h);
-
-  if (render_target->Texture == NULL) {
-    perror("Couldn't create render target texture");
-    exit(1);
-  }
-
-  SDL_SetRenderTarget(global_Renderer, render_target->Texture);
-  SDL_SetRenderDrawColor(global_Renderer, White.r, White.g, White.b, White.a);
-  SDL_RenderFillRect(global_Renderer, NULL);
-
-  SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
-  SDL_RenderFillRect(global_Renderer,&middle_Rect);
-
-  SDL_SetRenderTarget(global_Renderer, NULL);
-  SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
-}
-
-int length_Of_Frame(void * fps) {
-  // This is 1000 milliseconds divided by 60 frames, so it should give the
-  // (truncated/ rounded) amount of time per frame for 60fps
-
-  int frames_per_second = 1000 / 60;
-  SDL_Delay(frames_per_second);
-
-  return 0;
-}
-
+#include "game.h"
 
 int main(int argc, char** argv) {
   init();
-
-// 
-// The LoadingScreen variables and initialization 
-// 
 
   struct Texture_Info Loading_Mesage;
   Loading_Mesage.Texture = NULL;
@@ -314,7 +14,8 @@ int main(int argc, char** argv) {
   Loading_BUS_Logo.Rect.w = 200;
   center_Rect(&Loading_BUS_Logo.Rect);
     
-  Render_Text("Press any key to start", global_Font, White, &Loading_Mesage);
+  Render_Text("Press any key to start", global_Font,
+      White, &Loading_Mesage);
 
 
   // For the Game-Start screen 
@@ -322,7 +23,8 @@ int main(int argc, char** argv) {
   //
 
   struct Texture_Info game_Title;
-  Render_Text("Recollection", global_Font_Title, White, &game_Title);
+  Render_Text("Recollection", global_Font_Title, White,
+      &game_Title);
 
 
 
@@ -336,6 +38,10 @@ int main(int argc, char** argv) {
   Render_Text("Are you sure you want to do this?", global_Font, White, &game_confirmation_question);
   Render_Text("No.", global_Font, White, &game_confirmation_answers[0]);
   Render_Text("Yes.", global_Font, White, &game_confirmation_answers[1]);
+
+  struct Texture_Info game_info_bar;
+    Render_Text("Exploration", global_Font, White,
+        &game_info_bar);
 
   struct Texture_Info text_highlight;
   int text_highlight_index = 0;
@@ -355,7 +61,9 @@ int main(int argc, char** argv) {
   SDL_bool key_pressed = SDL_FALSE;
 
   while (quit != 1) {
-    frame_cap_thread = SDL_CreateThread(&length_Of_Frame,"frame_cap_thread", &fps_limit);
+    frame_cap_thread =
+      SDL_CreateThread(&length_Of_Frame,"frame_cap_thread",
+          &fps_limit);
 
     while( SDL_PollEvent(&currentEvent) != 0 ) {
       if (currentEvent.type == SDL_QUIT) {
@@ -364,33 +72,6 @@ int main(int argc, char** argv) {
       if (currentEvent.type == SDL_KEYDOWN) {
         user_inputs = NONE;
         key_pressed = SDL_TRUE;
-        // switch (currentEvent.key.keysym.sym) {
-        //   // case SDLK_k:
-        //   // case SDLK_w:
-        //   case SDLK_UP:
-        //     user_inputs = UP;
-        //     break;
-        //   case SDLK_j:
-        //   case SDLK_s:
-        //   case SDLK_DOWN:
-        //     user_inputs = DOWN;
-        //     break;
-        //   case SDLK_h:
-        //   case SDLK_a:
-        //   case SDLK_LEFT:
-        //     user_inputs = LEFT;
-        //     break;
-        //   case SDLK_l:
-        //   case SDLK_d:
-        //   case SDLK_RIGHT:
-        //     user_inputs = RIGHT;
-        //     break;
-        //   case SDLK_SPACE:
-        //     user_inputs = SELECT;
-        //     break;
-        //   default:
-        //     break;
-        // }
         for (int i=0; i<(SELECT); i++) {
           if (currentEvent.key.keysym.sym == Keybind_Settings.inputs[i].keycode){
             user_inputs = i+1;
@@ -501,16 +182,24 @@ StartMenu:
         break;
     }
 
-    SDL_SetRenderDrawColor(global_Renderer, White.r, White.g, White.b, White.a);
-    SDL_RenderDrawRect(global_Renderer, &starting_menus[selected_menu].Rect);
-    SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g, Black.b, Black.a);
+    SDL_SetRenderDrawColor(global_Renderer, White.r, White.g,
+        White.b, White.a);
+    SDL_RenderDrawRect(global_Renderer,
+        &starting_menus[selected_menu].Rect);
+    SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
+        Black.b, Black.a);
     goto displayFrame;
     
 Dialogue:
     goto displayFrame;
     
 Exploration:
+    SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
+        Black.b, Black.a);
+    center_Rect(&game_info_bar.Rect);
 
+    SDL_RenderCopy(global_Renderer, game_info_bar.Texture, NULL,
+        &game_info_bar.Rect);
     goto displayFrame;
 
 Settings:
@@ -520,11 +209,14 @@ Confirmation:
     SDL_RenderClear(global_Renderer);
     
     center_Rect(&game_confirmation_question.Rect);
-    SDL_RenderCopy(global_Renderer, game_confirmation_question.Texture, NULL, &game_confirmation_question.Rect);
+    SDL_RenderCopy(global_Renderer,
+        game_confirmation_question.Texture, NULL,
+        &game_confirmation_question.Rect);
     game_confirmation_answers[0].Rect.x = game_confirmation_question.Rect.x;
     game_confirmation_answers[0].Rect.y = game_confirmation_question.Rect.y + 100;
 
-    game_confirmation_answers[1].Rect.x = game_confirmation_question.Rect.x + game_confirmation_question.Rect.w - game_confirmation_answers[1].Rect.w;
+    game_confirmation_answers[1].Rect.x = game_confirmation_question.Rect.x +
+      game_confirmation_question.Rect.w - game_confirmation_answers[1].Rect.w;
     game_confirmation_answers[1].Rect.y = game_confirmation_question.Rect.y + 100;
 
     if ((user_inputs == RIGHT) || (user_inputs == LEFT)) {
@@ -533,12 +225,13 @@ Confirmation:
     }
 
     // Here
-    createHighlightFromTexture(&game_confirmation_answers[text_highlight_index], &text_highlight, 4, 4);
-    center_Rect_Relative(&game_confirmation_answers[text_highlight_index].Rect, &text_highlight.Rect);
-
-    SDL_RenderCopy(global_Renderer,
-        text_highlight.Texture, NULL,
+    createHighlightFromTexture(&game_confirmation_answers[text_highlight_index],
+        &text_highlight, 4, 4);
+    center_Rect_Relative(&game_confirmation_answers[text_highlight_index].Rect,
         &text_highlight.Rect);
+
+    SDL_RenderCopy(global_Renderer, text_highlight.Texture,
+        NULL, &text_highlight.Rect);
 
     SDL_RenderCopy(global_Renderer,
         game_confirmation_answers[0].Texture, NULL,
@@ -580,178 +273,3 @@ displayFrame:
 
 
 
-void init(void) {
-  //Initializing the SDL_Subsystems
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-    fprintf(stderr, "Was unable to initialize SDL: %s\n",
-        SDL_GetError());
-    exit(1);
-  }
-  
-
-  // This function is kinda weird, but I swear this is how it's supposed to
-  // work: https://wiki.libsdl.org/SDL2_image/IMG_Init
-  if ( (IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) == 0) {
-    fprintf(stderr, 
-        "Was unable to initialize SLD_IMG extension: %s\n",
-        IMG_GetError());
-    exit(1);
-  }
-
-  global_Window.Window = SDL_CreateWindow(WINDOW_NAME,
-      0, 0,
-      INITIAL_WIDTH, INITIAL_HEIGHT, SDL_WINDOW_SHOWN |
-      SDL_WINDOW_OPENGL | SDL_WINDOW_MAXIMIZED);
-
-  if (global_Window.Window == NULL) {
-    fprintf(stderr, "Window couldn't be initialized: %s\n",
-        SDL_GetError());
-    exit(1);
-  }
-
-  SDL_MaximizeWindow(global_Window.Window);
-
-  // Defining and checking the global_Renderer variable
-  global_Renderer = SDL_CreateRenderer(global_Window.Window, -1, SDL_RENDERER_ACCELERATED);
-
-  // Loading the default fonts for the game (font can be changed, this one is
-  // just a placeholder)
-  {
-    int temp = TTF_Init();
-    if (temp < 0) {
-      fprintf(stderr, "Error initializing TTF Library: %s\n", TTF_GetError());
-      exit(1);
-    }
-
-    global_Font = TTF_OpenFont(FONT_PATH, FONT_PT);
-    global_Font_Title = TTF_OpenFont(FONT_PATH, FONT_PT+20);
-
-    if ((global_Font == NULL) || (global_Font_Title == NULL)) {
-      fprintf(stderr, "Unable to open font file %s: %s\n",
-          FONT_PATH, TTF_GetError());
-    }
-  }
-
-  {
-    // // Basic Settings
-    // struct {
-    //   enum {
-    //     NORTH=0,
-    //     SOUTH,
-    //     WEST,
-    //     EAST,
-    //     SELECT,
-  
-    //     KEYBIND_SETTINGS_LENGTH
-    //   };
-      
-    //   struct possible_keys inputs[KEYBIND_SETTINGS_LENGTH];
-  
-    //   struct {
-    //     char* keys[KEYBIND_SETTINGS_LENGTH];
-    //     char* keys_end;
-    //   } dict;
-    // } Keybind_Settings = {
-    //   .inputs = {
-    //     [NORTH]={NULL, NULL, SDL_FALSE},
-    //     [SOUTH]={NULL, NULL, SDL_FALSE},
-    //     [WEST]={NULL, NULL, SDL_FALSE},
-    //     [EAST]={NULL, NULL, SDL_FALSE},
-    //     [SELECT]={NULL, NULL, SDL_FALSE}
-    //   },
-    //   .dict = {
-    //     .keys[NORTH]="NORTH",
-    //     .keys[SOUTH]="SOUTH",
-    //     .keys[WEST]="WEST",
-    //     .keys[EAST]="EAST",
-    //     .keys[SELECT]="SELECT",
-    //     .keys_end=NULL}
-    // };
-  
-  
-    settings_file.mode = NONE;
-    settings_file.strings[0] = "[KEYBINDS]";
-    settings_file.strings[1] = "[MISC]";
-    settings_file.strings_end = NULL;
-  
-    Keybind_Settings.dict.keys[0] = "NORTH";
-    Keybind_Settings.dict.keys[1] = "SOUTH";
-    Keybind_Settings.dict.keys[2] = "WEST";
-    Keybind_Settings.dict.keys[3] = "EAST";
-    Keybind_Settings.dict.keys_end = NULL; 
-  
-    // Loading save data from file
-    FILE* save_file_fd = NULL;
-    save_file_fd = fopen("save_file.csv", "a+");
-    if (save_file_fd == NULL) {
-      perror("Unable to open save file");
-      exit(1);
-    }
-  
-    // Should initialize all values to zero
-    char line_buffer[256] = { 0 };
-    char temp_buffer[256] = { 0 };
-    
-    while(
-        memset(line_buffer, 0, 256) &&
-        memset(temp_buffer, 0, 256) &&
-        fgets(line_buffer, 255, save_file_fd)) {
-      
-      for (int i=0, j=0; i < strlen(line_buffer); i++) {
-        temp_buffer[j] = line_buffer[i];
-        j = (line_buffer[i] != ' ') ? j + 1 : j;
-      }
-  
-      strcpy(line_buffer, temp_buffer);
-  
-      // Setting the mode depending on what header (the [SOME_LABEL]) is
-      {
-        register int i=0;
-        while (settings_file.strings[i]) {
-          if (!strncmp(settings_file.strings[i], line_buffer, strlen(settings_file.strings[i]))) {
-            settings_file.mode = i;
-          } 
-          i++;
-        }
-      }
-  
-  
-      switch (settings_file.mode) {
-      case KEYBINDS:;
-      // Search for keybind phrases
-        int len;
-        int index;
-        int found=-1;
-      
-        for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
-          len = strlen(Keybind_Settings.dict.keys[i]);
-          index=-1;
-          if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer,
-                len)) {
-            index = findIndexOfChar(line_buffer, '=', 0) + 1;
-            line_buffer[strlen(line_buffer)-2] = '\0';
-            found=i;
-            break;
-          }
-        }
-        if (found == -1) {break;}
-
-        struct array_and_len* line_array =
-          parse_list(&line_buffer[index+1], ',');
-
-        for (int i=0; i<line_array->len; i++) {
-          Keybind_Settings.inputs[found].enabled = SDL_TRUE;
-          Keybind_Settings.inputs[found].key_name = line_array->array[i];
-          Keybind_Settings.inputs[found].keycode = SDL_GetKeyFromName(line_array->array[i]);
-        }
-        break;
-      case MISC:
-        //Search for miscellaneous phrases
-        break;
-      case NO_MODE:
-      default:
-        break;
-      }
-    }
-  }
-}

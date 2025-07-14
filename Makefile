@@ -1,6 +1,6 @@
 CC = clang
 
-SRC_FILE = ./src/main.c 
+SRC_FILE = ./src/main.c ./src/game.c
 SRC_EXEC = ./build/game
 FLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -pedantic -Wc23-extensions -O1
 
