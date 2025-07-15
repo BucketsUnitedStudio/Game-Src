@@ -2,7 +2,7 @@ CC = clang
 
 SRC_FILE = ./src/main.c ./src/game.c
 SRC_EXEC = ./build/game
-FLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -pedantic -Wc23-extensions -O1
+FLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -pedantic -std=c23 -Wno-gnu-flexible-array-initializer -O1
 
 DBG_FLAGS = -ggdb
 

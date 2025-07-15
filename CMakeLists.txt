@@ -5,6 +5,8 @@ project(GameProject)
 # Set the compiler to clang
 set(CMAKE_C_COMPILER clang)
 
+set (CMAKE_C_STANDARD 23)
+
 # Define source and executable
 set(SRC_FILE ./src/main.c)
 set(SRC_EXEC ./build/game)

@@ -1,6 +1,8 @@
 #ifndef GAME_C
 #define GAME_C
 #include "game.h"
+#include <SDL2/SDL_stdinc.h>
+#include <unistd.h>
 // Color constants
 const SDL_Color White = {255, 255, 255, 255};
 const SDL_Color Grey = {128, 128, 128, 255};
@@ -20,26 +22,29 @@ TTF_Font* global_Font_Title = NULL;
 // Shows what 'part' of the game we are in
 enum gameMode global_Game_Mode = LOADING_SCREEN;
 
-char** gGame_Settings = NULL;
-
 enum directions user_inputs;
 
-struct Keybind_Settings_t Keybind_Settings = {
-  .inputs = {
-    [UP-1]={NULL, SDLK_w, SDL_TRUE},
-    [DOWN-1]={NULL, SDLK_s, SDL_TRUE},
-    [LEFT-1]={NULL, SDLK_a, SDL_TRUE},
-    [RIGHT-1]={NULL, SDLK_d, SDL_TRUE},
-    [SELECT-1]={NULL, SDLK_SPACE, SDL_TRUE}
+struct Game_Settings_t Game_Settings = {
+  .Keybinds = {
+    .inputs = {
+       [UP-1]={NULL, SDLK_w, "NORTH"},
+      [DOWN-1]={NULL, SDLK_s, "SOUTH"},
+      [LEFT-1]={NULL, SDLK_a, "WEST"},
+      [RIGHT-1]={NULL, SDLK_d, "EAST"},
+      [SELECT-1]={NULL, SDLK_SPACE, "SELECT"}
+    },
+    .end_buffer = {NULL, 0, NULL}
   },
-  .dict = {
-    .keys[UP-1]="NORTH",
-    .keys[DOWN-1]="SOUTH",
-    .keys[LEFT-1]="WEST",
-    .keys[RIGHT-1]="EAST",
-    .keys[SELECT-1]="SELECT",
-    .keys_end=NULL}
+  .Misc_Settings = {
+    {"EasyMode", SDL_FALSE}, 
+
+    // Buffer option
+    {NULL, SDL_FALSE}
+  }
 };
+
+constexpr int Option_count = sizeof(Game_Settings.Misc_Settings) / sizeof(Game_Settings.Misc_Settings[0]); 
+
 
 struct settings_file_t settings_file = {
   .mode=NONE,
@@ -316,10 +321,10 @@ void init(void) {
         int index;
         int found=-1;
       
-        for (int i=0; Keybind_Settings.dict.keys[i]; i++) {
-          len = strlen(Keybind_Settings.dict.keys[i]);
+        for (int i=0; Game_Settings.Keybinds.inputs[i].search_query; i++) {
+          len = strlen(Game_Settings.Keybinds.inputs[i].search_query);
           index=-1;
-          if (!strncmp(Keybind_Settings.dict.keys[i], line_buffer,
+          if (!strncmp(Game_Settings.Keybinds.inputs[i].search_query, line_buffer,
                 len)) {
             index = findIndexOfChar(line_buffer, '=', 0) + 1;
             line_buffer[strlen(line_buffer)-2] = '\0';
@@ -333,9 +338,8 @@ void init(void) {
           parse_list(&line_buffer[index+1], ',');
 
         for (int i=0; i<line_array->len; i++) {
-          Keybind_Settings.inputs[found].enabled = SDL_TRUE;
-          Keybind_Settings.inputs[found].key_name = line_array->array[i];
-          Keybind_Settings.inputs[found].keycode =
+          Game_Settings.Keybinds.inputs[found].key_name = line_array->array[i];
+          Game_Settings.Keybinds.inputs[found].keycode =
             SDL_GetKeyFromName(line_array->array[i]);
         }
         break;

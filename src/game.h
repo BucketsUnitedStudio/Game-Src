@@ -36,7 +36,7 @@
 #define LOGO_PATH "art/sprites/LOGO.jpg"
 #define FPS_LIMIT 60
 #define SAVE_FILE "save_file.cfg"
-#define LAST_DIRECTION NONE
+#define DIRECTION_COUNT NONE
 
 
 enum gameMode {
@@ -56,17 +56,15 @@ enum directions {
   RIGHT,
   SELECT,
 
+  // Must remain the LAST direction in the enum
+  // referred to by #define DIRECTION_COUNT
   NONE
 };
 
-struct possible_keys {
+struct key_input_t {
   char* key_name;
   SDL_KeyCode keycode;
-  SDL_bool enabled;
-};
-
-struct game_Options {
-  struct possible_keys game_Keybinds[NONE];
+  char* search_query;
 };
 
 struct Window_Info {SDL_Window* Window; SDL_Rect Rect; };
@@ -77,13 +75,15 @@ struct array_and_len{
   int len;
 };
 
-struct Keybind_Settings_t {
-  struct possible_keys inputs[LAST_DIRECTION];
-
+struct Game_Settings_t {
   struct {
-    char* keys[LAST_DIRECTION];
-    char* keys_end;
-  } dict;
+    struct key_input_t inputs[DIRECTION_COUNT];
+    struct key_input_t end_buffer;
+  } Keybinds;
+  struct {
+    char* Option_name;
+    SDL_bool Option_enabled;
+  } Misc_Settings[];
 };
 
 struct settings_file_t {
@@ -102,11 +102,10 @@ struct settings_file_t {
 
 extern struct Window_Info global_Window;
 extern SDL_Renderer* global_Renderer;
-extern char** gGame_Settings;
 extern enum gameMode global_Game_Mode;
 extern TTF_Font* global_Font;
 extern TTF_Font* global_Font_Title;
-extern struct Keybind_Settings_t Keybind_Settings;
+extern struct Game_Settings_t Game_Settings;
 extern struct settings_file_t settings_file;
 extern enum directions user_inputs;
 

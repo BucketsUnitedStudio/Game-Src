@@ -63,14 +63,15 @@ int main(int argc, char** argv) {
         user_inputs = NONE;
         key_pressed = SDL_TRUE;
         for (int i=0; i<(SELECT); i++) {
-          if (currentEvent.key.keysym.sym == Keybind_Settings.inputs[i].keycode){
+          if (currentEvent.key.keysym.sym == Game_Settings.Keybinds.inputs[i].keycode){
             user_inputs = i+1;
-            printf("%s\n", Keybind_Settings.inputs[i].key_name);
+            printf("%s\n", Game_Settings.Keybinds.inputs[i].key_name);
           }
         }
       }
     } 
     SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
+    constexpr int r =5;
 
     // Basically clearing then re-doing each frame 
     SDL_RenderClear(global_Renderer);
