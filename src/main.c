@@ -3,30 +3,20 @@
 int main(int argc, char** argv) {
   init();
 
-  struct Texture_Info Loading_Mesage;
-  Loading_Mesage.Texture = NULL;
-
-  struct Texture_Info Loading_BUS_Logo;
-  Loading_BUS_Logo.Texture = NULL;
-
-  Render_Image(LOGO_PATH, &Loading_BUS_Logo.Texture);
+  struct Texture_Info Loading_Mesage = {NULL, 0};
+  struct Texture_Info Loading_BUS_Logo = {NULL, 0};
   Loading_BUS_Logo.Rect.h = 200;
   Loading_BUS_Logo.Rect.w = 200;
+
+  Render_Image(LOGO_PATH, &Loading_BUS_Logo.Texture);
   center_Rect(&Loading_BUS_Logo.Rect);
     
   Render_Text("Press any key to start", global_Font,
       White, &Loading_Mesage);
 
-
-  // For the Game-Start screen 
-  //
-  //
-
   struct Texture_Info game_Title;
   Render_Text("Recollection", global_Font_Title, White,
       &game_Title);
-
-
 
   struct Texture_Info starting_menus[3];
   Render_Text("Start", global_Font_Title, White, &starting_menus[0]);
@@ -35,7 +25,8 @@ int main(int argc, char** argv) {
 
   struct Texture_Info game_confirmation_question;
   struct Texture_Info game_confirmation_answers[2];
-  Render_Text("Are you sure you want to do this?", global_Font, White, &game_confirmation_question);
+  Render_Text("Are you sure you want to do this?", global_Font, White,
+      &game_confirmation_question);
   Render_Text("No.", global_Font, White, &game_confirmation_answers[0]);
   Render_Text("Yes.", global_Font, White, &game_confirmation_answers[1]);
 
@@ -46,7 +37,6 @@ int main(int argc, char** argv) {
   struct Texture_Info text_highlight;
   int text_highlight_index = 0;
 
-  
   int animation_stage = 0;
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
@@ -88,27 +78,27 @@ int main(int argc, char** argv) {
     // Finding out what game mode we are in, and there is a goto statement
     // for each
     switch (global_Game_Mode) {
-      case LOADING_SCREEN:
-        goto LoadingScreen;
-        break;
-      case START_MENU:
-        goto StartMenu;
-        break;
-      case SETTINGS:
-        goto Settings;
-        break;
-      case CONFIRMATION:
-        goto Confirmation;
-        break;
-      case DIALOGUE:
-        goto Dialogue;
-        break;
-      case EXPLORATION:
-        goto Exploration;
-        break;
-      case BATTLE:
-        goto Battle;
-        break;
+    case LOADING_SCREEN:
+      goto LoadingScreen;
+      break;
+    case START_MENU:
+      goto StartMenu;
+      break;
+    case SETTINGS:
+      goto Settings;
+      break;
+    case CONFIRMATION:
+      goto Confirmation;
+      break;
+    case DIALOGUE:
+      goto Dialogue;
+      break;
+    case EXPLORATION:
+      goto Exploration;
+      break;
+    case BATTLE:
+      goto Battle;
+      break;
     }
     
 LoadingScreen:
@@ -142,44 +132,44 @@ StartMenu:
     }
   
     switch (user_inputs) {
-      case UP:
-        selected_menu = (selected_menu + 3 - 1) % 3;
-        user_inputs = NONE;
-        break;
-      case DOWN:
-        selected_menu = (selected_menu + 1) % 3;
-        user_inputs = NONE;
-        break;
-      case LEFT:
-        global_Game_Mode = LOADING_SCREEN;
-        user_inputs = NONE;
-        break;
+    case UP:
+      selected_menu = (selected_menu + 3 - 1) % 3;
+      user_inputs = NONE;
+      break;
+    case DOWN:
+      selected_menu = (selected_menu + 1) % 3;
+      user_inputs = NONE;
+      break;
+    case LEFT:
+      global_Game_Mode = LOADING_SCREEN;
+      user_inputs = NONE;
+      break;
 
-      case RIGHT:
-      case SELECT:
-        // Select that game menu
-        user_inputs = NONE;
-        switch (selected_menu) {
-          case (0):
-            //Start game from where you left off
-            global_Game_Mode = EXPLORATION;
-            break;
-          case (1):
-            // Restart game from beginning
-            // quit = 1;
-            global_Game_Mode = CONFIRMATION;
-            // Delete file with save data
-            break;
-          case (2):
-            // Go to setting page
-            global_Game_Mode = SETTINGS;
-            break;
-          default:
-            //IDK, error
-            break;
-        }
-      default:
-        break;
+    case RIGHT:
+    case SELECT:
+      // Select that game menu
+      user_inputs = NONE;
+      switch (selected_menu) {
+        case (0):
+          //Start game from where you left off
+          global_Game_Mode = EXPLORATION;
+          break;
+        case (1):
+          // Restart game from beginning
+          // quit = 1;
+          global_Game_Mode = CONFIRMATION;
+          // Delete file with save data
+          break;
+        case (2):
+          // Go to setting page
+          global_Game_Mode = SETTINGS;
+          break;
+        default:
+          //IDK, error
+          break;
+      }
+    default:
+      break;
     }
 
     SDL_SetRenderDrawColor(global_Renderer, White.r, White.g,

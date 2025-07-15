@@ -1,0 +1,6 @@
+TODO!!
+  - Make dialogue screen work
+  - Make exploration screen work
+  - Make setting screen work
+    - Refine the settings process
+  - Make battle screen work

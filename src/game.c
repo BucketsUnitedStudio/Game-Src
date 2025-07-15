@@ -231,7 +231,9 @@ void init(void) {
   // This function is kinda weird, but I swear this is how it's supposed to
   // work: https://wiki.libsdl.org/SDL2_image/IMG_Init
   if ( (IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) == 0) {
-    fprintf(stderr, "Was unable to initialize SLD_IMG extension: %s\n", IMG_GetError()); exit(1);
+    fprintf(stderr, "Was unable to initialize SLD_IMG extension: %s\n",
+        IMG_GetError()); 
+    exit(1);
   }
 
   global_Window.Window = SDL_CreateWindow(WINDOW_NAME,
