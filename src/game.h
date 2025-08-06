@@ -1,14 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_scancode.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_thread.h>
-#include <SDL2/SDL_timer.h>
-#include <stdint.h>
-#include <sys/types.h>
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
@@ -22,21 +14,33 @@
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_scancode.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_thread.h>
+#include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_messagebox.h>
+#include <SDL2/SDL_rwops.h>
+
+#include <stdint.h>
+#include <sys/types.h>
 #include <limits.h>
-#include <string.h>
 #include <unistd.h>
 
-#define INITIAL_WIDTH 800
-#define INITIAL_HEIGHT 800
 #define WINDOW_NAME "Recollection"
 #define FONT_PATH "fonts/BlockMonoFont/BlockMono-Bold.ttf"
-#define FONT_PT 20
 #define LOGO_PATH "art/sprites/LOGO.jpg"
-#define FPS_LIMIT 60
 #define SAVE_FILE "save_file.cfg"
-#define DIRECTION_COUNT NONE
+
+constexpr int INITIAL_WIDTH = 800;
+constexpr int INITIAL_HEIGHT = 800;
+constexpr int FONT_PT = 20;
+constexpr int FPS_LIMIT = 60;
+
+extern const char LOGO_ICON_RAW[];
+extern const int LOGO_ICON_RAW_LEN;
+
 
 
 enum gameMode {
@@ -60,6 +64,8 @@ enum directions {
   // referred to by #define DIRECTION_COUNT
   NONE
 };
+
+constexpr int DIRECTION_COUNT = NONE - UP + 1;
 
 struct key_input_t {
   char* key_name;
@@ -116,6 +122,7 @@ extern const SDL_Color Black;
 extern const SDL_Color Red;
 
 
+extern void handle_Error(SDL_Window* window, char* msg, const char* error_func, SDL_bool fatal );
 extern void center_Rect(SDL_Rect* to_Be_Centered);
 extern void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered);
 extern int findIndexOfChar(char* str, char character, int occurrence_num); 
@@ -123,7 +130,9 @@ extern int frequencyOfChar(char* str, char character);
 extern struct array_and_len* parse_list(char* str, char delimiter);
 extern void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color,
     struct Texture_Info* Texture);
-extern void Render_Image(const char* path, SDL_Texture** Texture);
+extern void Render_Image_From_Path(const char* path, SDL_Texture** Texture);
+extern void Render_Image_From_Array(SDL_Renderer* Renderer, const void* src_ptr,
+    const int buff_len, SDL_Texture** Texture);
 extern void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
     render_target, Sint32 border_width, Sint32 padding);
 extern int length_Of_Frame(void * fps);

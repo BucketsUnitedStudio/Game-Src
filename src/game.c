@@ -1,8 +1,18 @@
 #ifndef GAME_C
 #define GAME_C
 #include "game.h"
-#include <SDL2/SDL_stdinc.h>
-#include <unistd.h>
+
+const char LOGO_ICON_RAW[] = {
+#embed "../art/sprites/LOGO.jpg"
+};
+
+const int LOGO_ICON_RAW_LEN = sizeof(LOGO_ICON_RAW) / sizeof(LOGO_ICON_RAW[0]);
+
+const char FONT_RAW[] = {
+#embed "../fonts/BlockMonoFont/BlockMono-Bold.ttf" 
+};
+const int FONT_RAW_LEN = sizeof(FONT_RAW) / sizeof(FONT_RAW[0]);
+
 // Color constants
 const SDL_Color White = {255, 255, 255, 255};
 const SDL_Color Grey = {128, 128, 128, 255};
@@ -43,9 +53,6 @@ struct Game_Settings_t Game_Settings = {
   }
 };
 
-constexpr int Option_count = sizeof(Game_Settings.Misc_Settings) / sizeof(Game_Settings.Misc_Settings[0]); 
-
-
 struct settings_file_t settings_file = {
   .mode=NONE,
   .strings= {
@@ -54,6 +61,23 @@ struct settings_file_t settings_file = {
   },
   .strings_end=NULL
 };
+
+void handle_Error(SDL_Window* window, char* msg, const char* error_func, SDL_bool fatal) {
+  if ((msg == NULL) || (window == NULL)) 
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, 
+        "Error in calling handle_Error()", "Needs BOTH a window and message",
+        window);
+
+  const char* error_msg = (!error_func) ? "" : error_func;
+  
+  int new_str_len = strlen(msg) + strlen(error_msg) + 1;
+  char* new_Str = calloc(new_str_len, 1);
+  strcpy(new_Str, msg);
+  strcat(new_Str, error_msg);
+
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", new_Str, window);
+  if (fatal) exit(1);
+}
 
 void center_Rect(SDL_Rect* to_Be_Centered) {
   to_Be_Centered->x = (global_Window.Rect.w / 2) - (to_Be_Centered->w / 2);
@@ -120,7 +144,7 @@ struct array_and_len* parse_list(char* str, char delimiter){
   return buffer;
 
 Error:;
-  perror("Error parsing the save file");
+  handle_Error(global_Window.Window, "Error parsing save file", NULL, SDL_FALSE);
   buffer->array = NULL;
   buffer->len = 0;
   return buffer;
@@ -153,25 +177,31 @@ void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color, struct
 }
 
 // Loads an image from a path, and creates a texture from it
-void Render_Image(const char* path, SDL_Texture** Texture) {
+void Render_Image_From_Path(const char* path, SDL_Texture** Texture) {
   SDL_Surface* temp_surface = IMG_Load(path);
 
   if (temp_surface == NULL) {
-    fprintf(stderr, "Unable to load the image at %s: %s\n", path, IMG_GetError(
-          ));
-    exit(1);
+    handle_Error(global_Window.Window, "Unable to load image", IMG_GetError(), SDL_TRUE);
   } 
 
   SDL_DestroyTexture(*Texture);
   *Texture = SDL_CreateTextureFromSurface(global_Renderer, temp_surface);
 
   if (Texture == NULL) {
-    fprintf(stderr, "Could not create a Texture from %s: %s\n", path,
-        SDL_GetError()); 
-    exit(1);
+    handle_Error(global_Window.Window, "Could not create a texture from path",
+        SDL_GetError(), SDL_TRUE);
   }
 
   SDL_FreeSurface(temp_surface);
+}
+
+void Render_Image_From_Array(SDL_Renderer* Renderer, const void *src_ptr, const
+    int buf_len, SDL_Texture **Texture){
+  SDL_RWops* temp = SDL_RWFromConstMem(src_ptr, buf_len);
+  if (temp == NULL) handle_Error(global_Window.Window, 
+      "Error reading image from memory", SDL_GetError(), SDL_TRUE);
+
+  *Texture = IMG_LoadTexture_RW(Renderer, temp, 1);
 }
 
 void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
@@ -199,8 +229,8 @@ void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
       render_target->Rect.w, render_target->Rect.h);
 
   if (render_target->Texture == NULL) {
-    perror("Couldn't create render target texture");
-    exit(1);
+    handle_Error(global_Window.Window, "Couldn't create render target texture",
+        SDL_GetError(), SDL_TRUE);
   }
 
   SDL_SetRenderTarget(global_Renderer, render_target->Texture);
@@ -236,7 +266,7 @@ void init(void) {
   // This function is kinda weird, but I swear this is how it's supposed to
   // work: https://wiki.libsdl.org/SDL2_image/IMG_Init
   if ( (IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) == 0) {
-    fprintf(stderr, "Was unable to initialize SLD_IMG extension: %s\n",
+    fprintf(stderr, "Was unable to initialize SDL_IMG extension: %s\n",
         IMG_GetError()); 
     exit(1);
   }
@@ -262,17 +292,16 @@ void init(void) {
   {
     int temp = TTF_Init();
     if (temp < 0) {
-      fprintf(stderr, "Error initializing TTF Library: %s\n",
-          TTF_GetError());
-      exit(1);
+      handle_Error(global_Window.Window, "Error initializing TTF Library:",
+          TTF_GetError(), SDL_TRUE);
     }
 
     global_Font = TTF_OpenFont(FONT_PATH, FONT_PT);
     global_Font_Title = TTF_OpenFont(FONT_PATH, FONT_PT+20);
 
     if ((global_Font == NULL) || (global_Font_Title == NULL)) {
-      fprintf(stderr, "Unable to open font file %s: %s\n",
-          FONT_PATH, TTF_GetError());
+      handle_Error(global_Window.Window, "Unable to open font file",
+          TTF_GetError(), SDL_TRUE);
     }
   }
 
@@ -280,10 +309,10 @@ void init(void) {
     // Loading save data from file
     FILE* save_file_fd = NULL;
     save_file_fd = fopen(SAVE_FILE, "a+");
-    if (save_file_fd == NULL) {
-      perror("Unable to open save file");
-      exit(1);
-    }
+    if (save_file_fd == NULL) 
+      handle_Error(global_Window.Window, "Unable to open save file", NULL,
+          SDL_TRUE);
+    
   
     // Should initialize all values to zero
     char line_buffer[256] = { 0 };
@@ -353,6 +382,5 @@ void init(void) {
     }
   }
 }
-
 
 #endif

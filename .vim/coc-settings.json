@@ -1,0 +1,4 @@
+{
+  "clangd.arguments": ["--pretty"],
+  "clangd.fallbackFlags" : [".clangd"]
+}

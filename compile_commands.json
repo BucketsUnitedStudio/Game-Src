@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/build",
+  "command": "clang  -isystem /usr/include/SDL2 -isystem /usr/include/libpng16 -isystem /usr/include/rav1e -isystem /usr/include/svt-av1 -isystem /usr/include/webp -isystem /usr/include/freetype2 -isystem /usr/include/harfbuzz -isystem /usr/include/glib-2.0 -isystem /usr/lib/glib-2.0/include -isystem /usr/include/sysprof-6 -std=gnu2x -O1 -std=c23 -Weverything -Wno-c++98-compat -Wno-pre-c23-compat -D_GNU_SOURCE=1 -D_REENTRANT -DHWY_SHARED_DEFINE -DAVIF_DLL -DEB_DLL -pthread -o CMakeFiles/game.dir/src/main.c.o -c /home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/src/main.c",
+  "file": "/home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/src/main.c",
+  "output": "CMakeFiles/game.dir/src/main.c.o"
+},
+{
+  "directory": "/home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/build",
+  "command": "clang  -isystem /usr/include/SDL2 -isystem /usr/include/libpng16 -isystem /usr/include/rav1e -isystem /usr/include/svt-av1 -isystem /usr/include/webp -isystem /usr/include/freetype2 -isystem /usr/include/harfbuzz -isystem /usr/include/glib-2.0 -isystem /usr/lib/glib-2.0/include -isystem /usr/include/sysprof-6 -std=gnu2x -O1 -std=c23 -Weverything -Wno-c++98-compat -Wno-pre-c23-compat -D_GNU_SOURCE=1 -D_REENTRANT -DHWY_SHARED_DEFINE -DAVIF_DLL -DEB_DLL -pthread -o CMakeFiles/game.dir/src/game.c.o -c /home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/src/game.c",
+  "file": "/home/zonictrout/Desktop/Projects/BucketsUnitedStudio/Game-Src/src/game.c",
+  "output": "CMakeFiles/game.dir/src/game.c.o"
+}
+]

@@ -1,18 +1,23 @@
 #include "game.h"
 
+
+
 int main(int argc, char** argv) {
   init();
 
-  struct Texture_Info Loading_Mesage = {NULL, 0};
-  struct Texture_Info Loading_BUS_Logo = {NULL, 0};
+  struct Texture_Info Loading_Mesage = {};
+  struct Texture_Info Loading_BUS_Logo = {};
   Loading_BUS_Logo.Rect.h = 200;
   Loading_BUS_Logo.Rect.w = 200;
 
-  Render_Image(LOGO_PATH, &Loading_BUS_Logo.Texture);
+  Render_Image_From_Path(LOGO_PATH, &Loading_BUS_Logo.Texture);
+  Render_Image_From_Array(global_Renderer, LOGO_ICON_RAW, LOGO_ICON_RAW_LEN,
+      &Loading_BUS_Logo.Texture);
   center_Rect(&Loading_BUS_Logo.Rect);
     
   Render_Text("Press any key to start", global_Font,
       White, &Loading_Mesage);
+
 
   struct Texture_Info game_Title;
   Render_Text("Recollection", global_Font_Title, White,
@@ -37,7 +42,6 @@ int main(int argc, char** argv) {
   struct Texture_Info text_highlight;
   int text_highlight_index = 0;
 
-  int animation_stage = 0;
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
 
@@ -47,7 +51,6 @@ int main(int argc, char** argv) {
   int selected_menu = 0;
   user_inputs = NONE;
 
-  SDL_bool user_pressed_select = SDL_FALSE;
   SDL_bool key_pressed = SDL_FALSE;
 
   while (quit != 1) {
@@ -64,14 +67,13 @@ int main(int argc, char** argv) {
         key_pressed = SDL_TRUE;
         for (int i=0; i<(SELECT); i++) {
           if (currentEvent.key.keysym.sym == Game_Settings.Keybinds.inputs[i].keycode){
-            user_inputs = i+1;
+            user_inputs = (enum directions) i+1;
             printf("%s\n", Game_Settings.Keybinds.inputs[i].key_name);
           }
         }
       }
     } 
     SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
-    constexpr int r =5;
 
     // Basically clearing then re-doing each frame 
     SDL_RenderClear(global_Renderer);
@@ -81,24 +83,19 @@ int main(int argc, char** argv) {
     switch (global_Game_Mode) {
     case LOADING_SCREEN:
       goto LoadingScreen;
-      break;
     case START_MENU:
       goto StartMenu;
-      break;
     case SETTINGS:
       goto Settings;
-      break;
     case CONFIRMATION:
       goto Confirmation;
-      break;
     case DIALOGUE:
       goto Dialogue;
-      break;
     case EXPLORATION:
       goto Exploration;
-      break;
     case BATTLE:
       goto Battle;
+    default:
       break;
     }
     
@@ -194,6 +191,7 @@ Exploration:
     goto displayFrame;
 
 Settings:
+    //
     goto displayFrame;
 
 Confirmation:
