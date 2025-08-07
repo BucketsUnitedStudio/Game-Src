@@ -1,4 +1,0 @@
-CompilerFlags:
-  Add: [-std=c23, -Wpedantic]
-  Remove: [-Wno-c++98-compat, -Wno-pre-c23-compat]
-  Compiler: clang
