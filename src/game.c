@@ -84,8 +84,8 @@ void Menu_init(struct Menu *empty_Menu, int option_count) {
         "option_count is set to a non-real number (<=0)",
         SDL_FALSE);
   empty_Menu->option_count = option_count;
-  calloc(option_count, sizeof(struct Texture_Info));
-  calloc(option_count, sizeof(char*));
+  empty_Menu->textures = calloc(option_count, sizeof(struct Texture_Info));
+  empty_Menu->text_for_options = calloc(option_count, sizeof(char*));
   empty_Menu->selected_index = 0;
 }
 
@@ -95,7 +95,9 @@ void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
   // Using memmove in case the caller sets the reference_point to be the top
   // texture (to_align->textures[0].Rect), in which case the memory spaces would
   // overlap; potentially causing undefined behaviour.
-  memmove(&to_align->textures[0].Rect, reference_point, sizeof(SDL_Rect));
+  // memmove(&to_align->textures[0].Rect, reference_point, sizeof(SDL_Rect));
+  to_align->textures[0].Rect.x = reference_point->x;
+  to_align->textures[0].Rect.y = reference_point->y;
 
   int center_x = to_align->textures[0].Rect.x + (to_align->textures[0].Rect.w/2);
 

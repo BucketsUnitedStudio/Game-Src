@@ -1,3 +1,4 @@
+#include "SDL_rect.h"
 #include "game.h"
 
 
@@ -48,7 +49,8 @@ int main(int argc, char** argv) {
   testing_menu.text_for_options[1] = "Opt 2";
   testing_menu.text_for_options[2] = "Opt 3";
   Menu_initTextures(&testing_menu, NULL);
-  Menu_align(&testing_menu, &global_Window.Rect, 20);
+  SDL_Rect test_Rect = {20, 20, 20, 20};
+  Menu_align(&testing_menu, &test_Rect, 20);
 
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
@@ -120,6 +122,7 @@ LoadingScreen:
     // Background image
     SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
     SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
+    Menu_renderItemTextures(&testing_menu, global_Renderer);
     goto displayFrame;
 
 StartMenu:
