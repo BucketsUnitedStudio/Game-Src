@@ -42,6 +42,14 @@ int main(int argc, char** argv) {
   struct Texture_Info text_highlight;
   int text_highlight_index = 0;
 
+  struct Menu testing_menu = {};
+  Menu_init(&testing_menu, 3);
+  testing_menu.text_for_options[0] = "Opt 1";
+  testing_menu.text_for_options[1] = "Opt 2";
+  testing_menu.text_for_options[2] = "Opt 3";
+  Menu_initTextures(&testing_menu, NULL);
+  Menu_align(&testing_menu, &global_Window.Rect, 20);
+
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
 

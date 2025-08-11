@@ -1,6 +1,10 @@
 #ifndef GAME_C
 #define GAME_C
 #include "game.h"
+#include "SDL_render.h"
+#include "SDL_ttf.h"
+#include <stdlib.h>
+#include <string.h>
 
 const char LOGO_ICON_RAW[] = {
 #embed "../art/sprites/LOGO.jpg"
@@ -53,6 +57,12 @@ struct Game_Settings_t Game_Settings = {
   }
 };
 
+// - the mode member helps divide the settings into categories e. g. MISC or
+// KEYBINDS
+// - the 'string' member is the array of mode strings (the strings that identify
+// a mode)
+// - the 'strings_end' is just a buffer to  be sure that strings don't
+// accidentally overwrite the NULL byte
 struct settings_file_t settings_file = {
   .mode=NONE,
   .strings= {
@@ -62,6 +72,76 @@ struct settings_file_t settings_file = {
   .strings_end=NULL
 };
 
+// Initializes a Menu struct so that there are the correct amounts of menu
+// options/ submenus
+//
+// NOTE:
+// Make sure to destroy menu if you are trying to re-init a Menu
+void Menu_init(struct Menu *empty_Menu, int option_count) {
+  memset(empty_Menu, '\0', sizeof(struct Menu));
+  if (option_count <= 0) 
+    handle_Error(global_Window.Window, "Error trying to create menu",
+        "option_count is set to a non-real number (<=0)",
+        SDL_FALSE);
+  empty_Menu->option_count = option_count;
+  calloc(option_count, sizeof(struct Texture_Info));
+  calloc(option_count, sizeof(char*));
+  empty_Menu->selected_index = 0;
+}
+
+// Aligns menu items (vertically center-oriented relative to reference_point)
+void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
+    spacing) {
+  // Using memmove in case the caller sets the reference_point to be the top
+  // texture (to_align->textures[0].Rect), in which case the memory spaces would
+  // overlap; potentially causing undefined behaviour.
+  memmove(&to_align->textures[0].Rect, reference_point, sizeof(SDL_Rect));
+
+  int center_x = to_align->textures[0].Rect.x + (to_align->textures[0].Rect.w/2);
+
+  for (int i=1; i<to_align->option_count; i++) {
+    to_align->textures[i].Rect.x = center_x - (to_align->textures[i].Rect.w/2);
+    to_align->textures[i].Rect.y = to_align->textures[i-1].Rect.h +
+      to_align->textures[i-1].Rect.y + spacing;
+  }
+}
+
+// Creates the Textures for the menu items using the Menu->text_for_options
+// array of strings
+void Menu_initTextures(struct Menu* menu, TTF_Font* font) {
+  if (font == NULL) font = global_Font;
+
+  for (int i=0; i<menu->option_count; i++) {
+    Render_Text(menu->text_for_options[i], font, White, &menu->textures[i]);
+  }
+}
+
+// Actually RenderCopy the Menu textures onto the given renderer
+void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer) {
+  for(int i=0; i<menu->option_count; i++) {
+    SDL_RenderCopy(global_Renderer, menu->textures[i].Texture, NULL, &menu->textures[i].Rect);
+  }
+}
+
+// Frees all the textures in a 'dead' menu and then sets everything to a NULL
+// byte
+void Menu_destroy(struct Menu* dead_menu) {
+  for (int i=0; i<dead_menu->option_count; i++) {
+    SDL_DestroyTexture(dead_menu->textures[i].Texture);
+  }
+  memset(dead_menu, '\0', sizeof(struct Menu));
+}
+
+// Tries to handle errors so that they are easier to diagnose on systems without
+// a stderr stream.
+// -  Needs a SDL_Window to display SDL_ShowSimpleMessageBox 
+// -  msg is the basic error reason provided by the caller
+// -  the error_func is supposed to be used to show more info (SDL_GetError,
+//    IMG_GetError, etc) but can also be used by the caller to have a more
+//    descriptive error
+// -  the fatal boolean decides whether the error is fatal to the program i.e.
+//    whether or not to call exit(1) 
+// 
 void handle_Error(SDL_Window* window, char* msg, const char* error_func, SDL_bool fatal) {
   if ((msg == NULL) || (window == NULL)) 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, 
@@ -153,25 +233,22 @@ Error:;
 void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color, struct
     Texture_Info* Texture) {
   int text_len = strlen(text);
+  char* error_msg = "Unable to create a texture for a string";
+
   SDL_Surface* temp_surface = TTF_RenderText_Solid(font , text , text_color);
+  if (!temp_surface)
+    handle_Error(global_Window.Window, error_msg, TTF_GetError(), 1);
 
   SDL_DestroyTexture(Texture->Texture);
 
   Texture->Texture = (temp_surface != NULL) ?
     SDL_CreateTextureFromSurface(global_Renderer, temp_surface): NULL;
 
-  if (Texture->Texture == NULL || (TTF_SizeText(font, text, &Texture->Rect.w,
-          &Texture->Rect.h) < 0) )  {
-    printf("Error creating text texture with the text %s: %s\n", text,
-        TTF_GetError());
-    exit(1);
-  }
+  if (!Texture->Texture)
+    handle_Error(global_Window.Window, error_msg, SDL_GetError(), 1);
 
-  if (TTF_SizeText(font, text, &Texture->Rect.w, &Texture->Rect.h) < 0) {
-    printf("Error creating text texture with the text %s: %s\n", text,
-        TTF_GetError());
-    exit(1);
-  }
+  if (TTF_SizeText(font, text, &Texture->Rect.w, &Texture->Rect.h) < 0) 
+    handle_Error(global_Window.Window, error_msg, TTF_GetError(), 1);
 
   SDL_FreeSurface(temp_surface);
 }

@@ -106,6 +106,23 @@ struct settings_file_t {
   char* strings_end;
 };
 
+struct Menu {
+  int option_count;
+  
+  // The index of the selected menu item
+  int selected_index;
+
+  struct Texture_Info* textures;
+  char** text_for_options;
+};
+
+void Menu_init(struct Menu* empty_Menu, int option_count);
+void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
+    spacing);
+void Menu_initTextures(struct Menu* menu, TTF_Font* font);
+void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer);
+void Menu_destroy(struct Menu* dead_menu);
+
 extern struct Window_Info global_Window;
 extern SDL_Renderer* global_Renderer;
 extern enum gameMode global_Game_Mode;

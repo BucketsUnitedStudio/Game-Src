@@ -4,3 +4,13 @@ TODO!!
   - Make setting screen work
     - Refine the settings process
   - Make battle screen work
+
+IDEA!!
+Because the art is taking awhile, I should make it so I can import any image and
+it will act as a "map" of sorts. I can Also create a character to explore the
+map. I can use colors of the map to create barrier sprites easier. I should also
+make a scrolling map so that larger "maps" can be explored.
+
+Also, I could find a Discord bot that will notify the discord every time I make
+a change to the repo, so that they will know that I am still working on it (and
+possibly rush them along)
