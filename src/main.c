@@ -50,6 +50,7 @@ int main(int argc, char** argv) {
   testing_menu.text_for_options[2] = "Opt 3";
   Menu_initTextures(&testing_menu, NULL);
   SDL_Rect test_Rect = {20, 20, 20, 20};
+  Menu_highlightItem(&testing_menu, 0);
   Menu_align(&testing_menu, &test_Rect, 20);
 
   int fps_limit = FPS_LIMIT;

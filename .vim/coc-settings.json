@@ -1,4 +1,5 @@
 {
   "clangd.arguments": ["--pretty"],
-  "clangd.fallbackFlags" : [".clangd"]
+  "clangd.fallbackFlags" : [".clangd"],
+  "inlayHint.enable": false
 }

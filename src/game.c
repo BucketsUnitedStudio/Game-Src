@@ -2,6 +2,7 @@
 #define GAME_C
 #include "game.h"
 #include "SDL_render.h"
+#include "SDL_stdinc.h"
 #include "SDL_ttf.h"
 #include <stdlib.h>
 #include <string.h>
@@ -84,6 +85,7 @@ void Menu_init(struct Menu *empty_Menu, int option_count) {
         "option_count is set to a non-real number (<=0)",
         SDL_FALSE);
   empty_Menu->option_count = option_count;
+  memset(&empty_Menu->highlight, '\0', sizeof(struct Texture_Info));
   empty_Menu->textures = calloc(option_count, sizeof(struct Texture_Info));
   empty_Menu->text_for_options = calloc(option_count, sizeof(char*));
   empty_Menu->selected_index = 0;
@@ -92,10 +94,6 @@ void Menu_init(struct Menu *empty_Menu, int option_count) {
 // Aligns menu items (vertically center-oriented relative to reference_point)
 void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
     spacing) {
-  // Using memmove in case the caller sets the reference_point to be the top
-  // texture (to_align->textures[0].Rect), in which case the memory spaces would
-  // overlap; potentially causing undefined behaviour.
-  // memmove(&to_align->textures[0].Rect, reference_point, sizeof(SDL_Rect));
   to_align->textures[0].Rect.x = reference_point->x;
   to_align->textures[0].Rect.y = reference_point->y;
 
@@ -120,9 +118,20 @@ void Menu_initTextures(struct Menu* menu, TTF_Font* font) {
 
 // Actually RenderCopy the Menu textures onto the given renderer
 void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer) {
+  SDL_RenderCopy(global_Renderer, menu->highlight.Texture, NULL, &menu->highlight.Rect );
   for(int i=0; i<menu->option_count; i++) {
     SDL_RenderCopy(global_Renderer, menu->textures[i].Texture, NULL, &menu->textures[i].Rect);
   }
+}
+
+void Menu_highlightItem(struct Menu* menu, Sint32 item_index) {
+  if (item_index>= menu->option_count) {
+    handle_Error(global_Window.Window, 
+        "The index provided by caller is too large", 
+        "Now using modulo operator", SDL_FALSE);
+    item_index = item_index % menu->option_count;
+  }
+  createHighlightFromTexture(&menu->textures[item_index], &menu->highlight, 10, 10);
 }
 
 // Frees all the textures in a 'dead' menu and then sets everything to a NULL
