@@ -1,3 +1,7 @@
+//
+// Main.c 
+//
+
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "game.h"
@@ -25,24 +29,14 @@ int main(int argc, char** argv) {
   Render_Text("Recollection", global_Font_Title, White,
       &game_Title);
 
-  // struct Texture_Info starting_menus[3];
-  // Render_Text("Start", global_Font_Title, White, &starting_menus[0]);
-  // Render_Text("Amnesia", global_Font_Title, White, &starting_menus[1]);
-  // Render_Text("Settings", global_Font_Title, White, &starting_menus[2]);
-
   struct Texture_Info game_confirmation_question;
   // struct Texture_Info game_confirmation_answers[2];
   Render_Text("Are you sure you want to do this?", global_Font, White,
       &game_confirmation_question);
-  // Render_Text("No.", global_Font, White, &game_confirmation_answers[0]);
-  // Render_Text("Yes.", global_Font, White, &game_confirmation_answers[1]);
 
   struct Texture_Info game_info_bar;
     Render_Text("Exploration", global_Font, White,
         &game_info_bar);
-
-  // struct Texture_Info text_highlight;
-  // int text_highlight_index = 0;
 
   struct Menu confirm_Menu = {};
   Menu_init(&confirm_Menu, 2);
@@ -185,12 +179,6 @@ StartMenu:
       break;
     }
 
-    // SDL_SetRenderDrawColor(global_Renderer, White.r, White.g,
-    //     White.b, White.a);
-    // SDL_RenderDrawRect(global_Renderer,
-    //     &starting_menus[selected_menu].Rect);
-    // SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
-    //     Black.b, Black.a);
     goto displayFrame;
     
 Dialogue:
@@ -212,39 +200,6 @@ Settings:
 Confirmation:
     SDL_RenderClear(global_Renderer);
     
-    // center_Rect(&game_confirmation_question.Rect);
-    // SDL_RenderCopy(global_Renderer,
-    //     game_confirmation_question.Texture, NULL,
-    //     &game_confirmation_question.Rect);
-    // game_confirmation_answers[0].Rect.x = game_confirmation_question.Rect.x;
-    // game_confirmation_answers[0].Rect.y = game_confirmation_question.Rect.y + 100;
-    //
-    // game_confirmation_answers[1].Rect.x = game_confirmation_question.Rect.x +
-    //   game_confirmation_question.Rect.w - game_confirmation_answers[1].Rect.w;
-    // game_confirmation_answers[1].Rect.y = game_confirmation_question.Rect.y + 100;
-    //
-    // if ((user_inputs == RIGHT) || (user_inputs == LEFT)) {
-    //   text_highlight_index = (text_highlight_index+1) % 2;
-    //   user_inputs = NONE;
-    // }
-    //
-    // // Here
-    // createHighlightFromTexture(&game_confirmation_answers[text_highlight_index],
-    //     &text_highlight, 4, 4);
-    // center_Rect_Relative(&game_confirmation_answers[text_highlight_index].Rect,
-    //     &text_highlight.Rect);
-    //
-    // SDL_RenderCopy(global_Renderer, text_highlight.Texture,
-    //     NULL, &text_highlight.Rect);
-    //
-    // SDL_RenderCopy(global_Renderer,
-    //     game_confirmation_answers[0].Texture, NULL,
-    //     &game_confirmation_answers[0].Rect);
-    //
-    // SDL_RenderCopy(global_Renderer,
-    //     game_confirmation_answers[1].Texture, NULL,
-    //     &game_confirmation_answers[1].Rect);
-    
     center_Rect(&game_confirmation_question.Rect);
     game_confirmation_question.Rect.y -= 40;
     SDL_RenderCopy(global_Renderer, game_confirmation_question.Texture, NULL,
@@ -252,9 +207,19 @@ Confirmation:
 
     center_Rect(&confirm_Menu.textures[0].Rect);
     Menu_align(&confirm_Menu, &confirm_Menu.textures->Rect, 20);
-    Menu_renderItemTextures(&confirm_Menu, global_Renderer);
+    Menu_highlightItem(&confirm_Menu, confirm_Menu.selected_index,
+        DEFAULT_BORDER_AND_PADDING, DEFAULT_BORDER_AND_PADDING);
 
-    if (user_inputs == SELECT) {
+    switch (user_inputs) {
+    case RIGHT:
+    case LEFT:
+    case UP:
+    case DOWN:
+      confirm_Menu.selected_index = (confirm_Menu.selected_index + 1) %
+        confirm_Menu.option_count;
+      user_inputs = NONE;
+      break;
+    case SELECT:
       if (confirm_Menu.selected_index == 0) {
         user_inputs = NONE;
         SDL_RenderClear(global_Renderer);
@@ -262,7 +227,11 @@ Confirmation:
         goto StartMenu;
       }
       quit = 1;
+    default:
+      break;
     }
+
+    Menu_renderItemTextures(&confirm_Menu, global_Renderer);
 
     goto displayFrame;
 

@@ -3,7 +3,7 @@ let s:so_save = &g:so | let s:siso_save = &g:siso | setg so=0 siso=0 | setl so=-
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/Desktop/Projects/BucketUnitedStudio/Game-Src
+cd ~/Buckets-Src
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -13,23 +13,19 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +146 src/main.c
-badd +69 src/game.c
-badd +134 src/game.h
+badd +264 src/main.c
+badd +42 src/game.c
+badd +44 src/game.h
 argglobal
 %argdel
 $argadd src/main.c
-edit src/game.h
+edit src/main.c
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
-wincmd _ | wincmd |
-split
-1wincmd k
-wincmd w
 wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
@@ -40,11 +36,8 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe '1resize ' . ((&lines * 22 + 23) / 46)
 exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
-exe '2resize ' . ((&lines * 21 + 23) / 46)
-exe 'vert 2resize ' . ((&columns * 104 + 104) / 208)
-exe 'vert 3resize ' . ((&columns * 103 + 104) / 208)
+exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
 argglobal
 balt src/game.c
 setlocal foldmethod=manual
@@ -57,17 +50,17 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 117 - ((15 * winheight(0) + 11) / 22)
+let s:l = 197 - ((28 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 117
-normal! 0
+keepjumps 197
+normal! 06|
 wincmd w
 argglobal
-if bufexists(fnamemodify("src/game.c", ":p")) | buffer src/game.c | else | edit src/game.c | endif
+if bufexists(fnamemodify("src/main.c", ":p")) | buffer src/main.c | else | edit src/main.c | endif
 if &buftype ==# 'terminal'
-  silent file src/game.c
+  silent file src/main.c
 endif
 balt src/game.h
 setlocal foldmethod=manual
@@ -80,42 +73,15 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 96 - ((17 * winheight(0) + 10) / 21)
+let s:l = 213 - ((16 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 96
-normal! 0
+keepjumps 213
+normal! 013|
 wincmd w
-argglobal
-if bufexists(fnamemodify("src/game.c", ":p")) | buffer src/game.c | else | edit src/game.c | endif
-if &buftype ==# 'terminal'
-  silent file src/game.c
-endif
-balt src/main.c
-setlocal foldmethod=manual
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 73 - ((26 * winheight(0) + 22) / 44)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 73
-normal! 029|
-wincmd w
-3wincmd w
-exe '1resize ' . ((&lines * 22 + 23) / 46)
 exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
-exe '2resize ' . ((&lines * 21 + 23) / 46)
-exe 'vert 2resize ' . ((&columns * 104 + 104) / 208)
-exe 'vert 3resize ' . ((&columns * 103 + 104) / 208)
+exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

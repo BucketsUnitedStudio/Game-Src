@@ -1,3 +1,7 @@
+//
+// game.h 
+//
+
 #ifndef GAME_H
 #define GAME_H
 
@@ -23,7 +27,6 @@
 #include <SDL2/SDL_messagebox.h>
 #include <SDL2/SDL_rwops.h>
 
-#include <stdint.h>
 #include <sys/types.h>
 #include <limits.h>
 #include <unistd.h>
@@ -37,6 +40,8 @@ constexpr int INITIAL_WIDTH = 800;
 constexpr int INITIAL_HEIGHT = 800;
 constexpr int FONT_PT = 20;
 constexpr int FPS_LIMIT = 60;
+
+constexpr int DEFAULT_BORDER_AND_PADDING = 10;
 
 extern const char LOGO_ICON_RAW[];
 extern const int LOGO_ICON_RAW_LEN;
