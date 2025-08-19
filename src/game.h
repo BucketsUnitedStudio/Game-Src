@@ -122,7 +122,7 @@ void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
     spacing);
 void Menu_initTextures(struct Menu* menu, TTF_Font* font);
 void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer);
-void Menu_highlightItem(struct Menu* menu, Sint32 item_index);
+void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width, int padding);
 void Menu_destroy(struct Menu* dead_menu);
 
 extern struct Window_Info global_Window;

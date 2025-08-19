@@ -118,20 +118,26 @@ void Menu_initTextures(struct Menu* menu, TTF_Font* font) {
 
 // Actually RenderCopy the Menu textures onto the given renderer
 void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer) {
-  SDL_RenderCopy(global_Renderer, menu->highlight.Texture, NULL, &menu->highlight.Rect );
+  SDL_RenderCopy(global_Renderer, menu->highlight.Texture, NULL,
+      &menu->highlight.Rect );
   for(int i=0; i<menu->option_count; i++) {
-    SDL_RenderCopy(global_Renderer, menu->textures[i].Texture, NULL, &menu->textures[i].Rect);
+    SDL_RenderCopy(global_Renderer, menu->textures[i].Texture, NULL,
+        &menu->textures[i].Rect);
   }
 }
 
-void Menu_highlightItem(struct Menu* menu, Sint32 item_index) {
+void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width,
+    int padding) {
   if (item_index>= menu->option_count) {
     handle_Error(global_Window.Window, 
         "The index provided by caller is too large", 
         "Now using modulo operator", SDL_FALSE);
     item_index = item_index % menu->option_count;
   }
-  createHighlightFromTexture(&menu->textures[item_index], &menu->highlight, 10, 10);
+  createHighlightFromTexture(&menu->textures[item_index], &menu->highlight,
+      border_width, padding);
+  menu->highlight.Rect.x = menu->textures[item_index].Rect.x - padding - border_width;
+  menu->highlight.Rect.y = menu->textures[item_index].Rect.y - padding - border_width;
 }
 
 // Frees all the textures in a 'dead' menu and then sets everything to a NULL
