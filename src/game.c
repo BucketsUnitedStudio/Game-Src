@@ -17,6 +17,11 @@ const char LOGO_ICON_RAW[] = {
 
 const int LOGO_ICON_RAW_LEN = sizeof(LOGO_ICON_RAW) / sizeof(LOGO_ICON_RAW[0]);
 
+const char TEST_BACKGROUND[] = {
+#embed "../art/maps/Pokemon.jpg"
+};
+const int TEST_BACKGROUND_LEN = sizeof(TEST_BACKGROUND) / sizeof(TEST_BACKGROUND[0]);
+
 const char FONT_RAW[] = {
 #embed "../fonts/BlockMonoFont/BlockMono-Bold.ttf" 
 };

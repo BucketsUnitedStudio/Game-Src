@@ -46,6 +46,9 @@ constexpr int DEFAULT_BORDER_AND_PADDING = 10;
 extern const char LOGO_ICON_RAW[];
 extern const int LOGO_ICON_RAW_LEN;
 
+extern const char TEST_BACKGROUND[];
+extern const int TEST_BACKGROUND_LEN;
+
 
 
 enum gameMode {

@@ -13,9 +13,10 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +264 src/main.c
-badd +42 src/game.c
-badd +44 src/game.h
+badd +54 src/main.c
+badd +19 src/game.c
+badd +75 src/game.h
+badd +0 save_file.cfg
 argglobal
 %argdel
 $argadd src/main.c
@@ -39,29 +40,6 @@ set winwidth=1
 exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
 exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
 argglobal
-balt src/game.c
-setlocal foldmethod=manual
-setlocal foldexpr=0
-setlocal foldmarker={{{,}}}
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldenable
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 197 - ((28 * winheight(0) + 29) / 58)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 197
-normal! 06|
-wincmd w
-argglobal
-if bufexists(fnamemodify("src/main.c", ":p")) | buffer src/main.c | else | edit src/main.c | endif
-if &buftype ==# 'terminal'
-  silent file src/main.c
-endif
 balt src/game.h
 setlocal foldmethod=manual
 setlocal foldexpr=0
@@ -73,13 +51,37 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 213 - ((16 * winheight(0) + 29) / 58)
+let s:l = 54 - ((34 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 213
-normal! 013|
+keepjumps 54
+normal! 022|
 wincmd w
+argglobal
+if bufexists(fnamemodify("src/game.c", ":p")) | buffer src/game.c | else | edit src/game.c | endif
+if &buftype ==# 'terminal'
+  silent file src/game.c
+endif
+balt src/main.c
+setlocal foldmethod=manual
+setlocal foldexpr=0
+setlocal foldmarker={{{,}}}
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldenable
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 19 - ((18 * winheight(0) + 29) / 58)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 19
+normal! 031|
+wincmd w
+2wincmd w
 exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
 exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
 tabnext 1

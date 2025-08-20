@@ -51,6 +51,10 @@ int main(int argc, char** argv) {
   main_Menu.text_for_options[2] = "Settings";
   Menu_initTextures(&main_Menu, global_Font_Title);
 
+  // Import image here
+  struct Texture_Info test_background = {};
+  Render_Image_From_Array(global_Renderer, TEST_BACKGROUND, TEST_BACKGROUND_LEN,
+      &test_background.Texture);
 
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
@@ -185,8 +189,11 @@ Dialogue:
     goto displayFrame;
     
 Exploration:
+
+    SDL_RenderCopy(global_Renderer, test_background.Texture, &global_Window.Rect, NULL);
     SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
         Black.b, Black.a);
+
     center_Rect(&game_info_bar.Rect);
 
     SDL_RenderCopy(global_Renderer, game_info_bar.Texture, NULL,
@@ -194,7 +201,7 @@ Exploration:
     goto displayFrame;
 
 Settings:
-    //
+    SDL_RenderClear(global_Renderer);
     goto displayFrame;
 
 Confirmation:
