@@ -159,7 +159,7 @@ extern void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color,
     struct Texture_Info* Texture);
 extern void Render_Image_From_Path(const char* path, SDL_Texture** Texture);
 extern void Render_Image_From_Array(SDL_Renderer* Renderer, const void* src_ptr,
-    const int buff_len, SDL_Texture** Texture);
+    const int buff_len, struct Texture_Info* Texture);
 extern void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
     render_target, Sint32 border_width, Sint32 padding);
 extern int length_Of_Frame(void * fps);

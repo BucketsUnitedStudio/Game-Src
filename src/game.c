@@ -299,12 +299,13 @@ void Render_Image_From_Path(const char* path, SDL_Texture** Texture) {
 }
 
 void Render_Image_From_Array(SDL_Renderer* Renderer, const void *src_ptr, const
-    int buf_len, SDL_Texture **Texture){
+    int buf_len, struct Texture_Info *Texture){
   SDL_RWops* temp = SDL_RWFromConstMem(src_ptr, buf_len);
   if (temp == NULL) handle_Error(global_Window.Window, 
       "Error reading image from memory", SDL_GetError(), SDL_TRUE);
 
   *Texture = IMG_LoadTexture_RW(Renderer, temp, 1);
+  SDL_QueryTexture(Texture->Texture, SDL_PIXELFORMAT_RGBA8888, NULL, Texture->Rect.w, Texture->Rect.h);
 }
 
 void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*

@@ -5,6 +5,7 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "game.h"
+#include "string.h"
 
 
 
@@ -55,6 +56,8 @@ int main(int argc, char** argv) {
   struct Texture_Info test_background = {};
   Render_Image_From_Array(global_Renderer, TEST_BACKGROUND, TEST_BACKGROUND_LEN,
       &test_background.Texture);
+  SDL_Rect test_player_View = {};
+  SDL_GetWindowSize(global_Window.Window, &(test_player_View.w), &(test_player_View.h));
 
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
@@ -190,14 +193,26 @@ Dialogue:
     
 Exploration:
 
-    SDL_RenderCopy(global_Renderer, test_background.Texture, &global_Window.Rect, NULL);
+    switch (user_inputs) {
+    case UP:
+      test_player_View.y = (test_player_View.y - 10 >= 0) ?
+        test_player_View.y - 10: 0;
+      break;
+    case DOWN:
+      // test_player_View.y += 10;
+      test_player_View.y = (test_player_View.y + 10 <= test_background.Rect.h) ?
+        test_player_View.y + 10: test_background.Rect.h;
+      break;
+    }
+
+    SDL_RenderCopy(global_Renderer, test_background.Texture, &test_player_View, NULL);
     SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
         Black.b, Black.a);
 
-    center_Rect(&game_info_bar.Rect);
-
-    SDL_RenderCopy(global_Renderer, game_info_bar.Texture, NULL,
-        &game_info_bar.Rect);
+    // center_Rect(&game_info_bar.Rect);
+    //
+    // SDL_RenderCopy(global_Renderer, game_info_bar.Texture, NULL,
+    //     &game_info_bar.Rect);
     goto displayFrame;
 
 Settings:
@@ -246,6 +261,7 @@ Battle:
     goto displayFrame;
     
 displayFrame:  
+    user_inputs = NONE;
     SDL_RenderPresent(global_Renderer);
 
     SDL_WaitThread(frame_cap_thread, NULL);

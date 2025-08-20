@@ -13,10 +13,10 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +54 src/main.c
-badd +19 src/game.c
-badd +75 src/game.h
-badd +0 save_file.cfg
+badd +60 src/main.c
+badd +308 src/game.c
+badd +162 src/game.h
+badd +1 save_file.cfg
 argglobal
 %argdel
 $argadd src/main.c
@@ -37,8 +37,7 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
-exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
+wincmd =
 argglobal
 balt src/game.h
 setlocal foldmethod=manual
@@ -51,12 +50,12 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 54 - ((34 * winheight(0) + 29) / 58)
+let s:l = 27 - ((26 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 54
-normal! 022|
+keepjumps 27
+normal! 0
 wincmd w
 argglobal
 if bufexists(fnamemodify("src/game.c", ":p")) | buffer src/game.c | else | edit src/game.c | endif
@@ -74,16 +73,15 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 19 - ((18 * winheight(0) + 29) / 58)
+let s:l = 308 - ((34 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 19
-normal! 031|
+keepjumps 308
+normal! 056|
 wincmd w
 2wincmd w
-exe 'vert 1resize ' . ((&columns * 104 + 104) / 208)
-exe 'vert 2resize ' . ((&columns * 103 + 104) / 208)
+wincmd =
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
