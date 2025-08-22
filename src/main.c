@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 
   Render_Image_From_Path(LOGO_PATH, &Loading_BUS_Logo.Texture);
   Render_Image_From_Array(global_Renderer, LOGO_ICON_RAW, LOGO_ICON_RAW_LEN,
-      &Loading_BUS_Logo.Texture);
+      &Loading_BUS_Logo);
   center_Rect(&Loading_BUS_Logo.Rect);
     
   Render_Text("Press any key to start", global_Font,
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   // Import image here
   struct Texture_Info test_background = {};
   Render_Image_From_Array(global_Renderer, TEST_BACKGROUND, TEST_BACKGROUND_LEN,
-      &test_background.Texture);
+      &test_background);
   SDL_Rect test_player_View = {};
   SDL_GetWindowSize(global_Window.Window, &(test_player_View.w), &(test_player_View.h));
 
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
         }
       }
     } 
-    SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
+    // SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
 
     // Basically clearing then re-doing each frame 
     SDL_RenderClear(global_Renderer);
@@ -199,9 +199,25 @@ Exploration:
         test_player_View.y - 10: 0;
       break;
     case DOWN:
-      // test_player_View.y += 10;
-      test_player_View.y = (test_player_View.y + 10 <= test_background.Rect.h) ?
-        test_player_View.y + 10: test_background.Rect.h;
+      test_player_View.y = 
+        (test_player_View.y + global_Window.Rect.h + 10 <test_background.Rect.h)
+        ? test_player_View.y + 10:
+        test_background.Rect.h - global_Window.Rect.h;
+      break;
+    case LEFT:
+      test_player_View.x = (test_player_View.x - 10 >= 0) ?
+        test_player_View.x - 10: 0;
+      break;
+
+    case RIGHT:
+      test_player_View.x = 
+        (test_player_View.x+global_Window.Rect.w + 10 <= test_background.Rect.w) 
+        ? test_player_View.x + 10:
+        test_background.Rect.w - global_Window.Rect.w;
+      break;
+
+    case SELECT:
+    case NONE: 
       break;
     }
 

@@ -18,7 +18,7 @@ const char LOGO_ICON_RAW[] = {
 const int LOGO_ICON_RAW_LEN = sizeof(LOGO_ICON_RAW) / sizeof(LOGO_ICON_RAW[0]);
 
 const char TEST_BACKGROUND[] = {
-#embed "../art/maps/Pokemon.jpg"
+#embed "../art/maps/map.jpg"
 };
 const int TEST_BACKGROUND_LEN = sizeof(TEST_BACKGROUND) / sizeof(TEST_BACKGROUND[0]);
 
@@ -304,8 +304,8 @@ void Render_Image_From_Array(SDL_Renderer* Renderer, const void *src_ptr, const
   if (temp == NULL) handle_Error(global_Window.Window, 
       "Error reading image from memory", SDL_GetError(), SDL_TRUE);
 
-  *Texture = IMG_LoadTexture_RW(Renderer, temp, 1);
-  SDL_QueryTexture(Texture->Texture, SDL_PIXELFORMAT_RGBA8888, NULL, Texture->Rect.w, Texture->Rect.h);
+  Texture->Texture = IMG_LoadTexture_RW(Renderer, temp, 1);
+  SDL_QueryTexture(Texture->Texture, NULL, NULL, &Texture->Rect.w, &Texture->Rect.h);
 }
 
 void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
