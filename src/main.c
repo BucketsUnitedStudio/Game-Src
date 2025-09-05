@@ -6,6 +6,7 @@
 #include "SDL_render.h"
 #include "game.h"
 #include "string.h"
+#include <stdio.h>
 
 
 
@@ -128,7 +129,7 @@ LoadingScreen:
 
     // Background image
     SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
-    printf("w : %d and h : %d\n", Loading_BUS_Logo.Rect.w, Loading_BUS_Logo.Rect.h);
+    // printf("w : %d and h : %d\n", Loading_BUS_Logo.Rect.w, Loading_BUS_Logo.Rect.h);
     SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
     goto displayFrame;
 
@@ -145,12 +146,14 @@ StartMenu:
   
     switch (user_inputs) {
     case UP:
+      printf("Index %d\n", main_Menu.selected_index);
       // selected_menu = (selected_menu + 3 - 1) % 3;
       main_Menu.selected_index = (main_Menu.selected_index +
           main_Menu.option_count - 1) % main_Menu.option_count;
       user_inputs = NONE;
       break;
     case DOWN:
+      printf("Index %d\n", main_Menu.selected_index);
       selected_menu = (selected_menu + 1) % 3;
       main_Menu.selected_index = (main_Menu.selected_index + 1) % main_Menu.option_count;
       user_inputs = NONE;
