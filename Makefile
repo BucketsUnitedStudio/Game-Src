@@ -1,4 +1,4 @@
-PRE-COMPILE = mkdir -p build;
+PRE-COMPILE =  mkdir -p build;
 CC = $(PRE-COMPILE) bear -- clang
 
 SRC_FILE = ./src/main.c ./src/game.c

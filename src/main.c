@@ -14,12 +14,12 @@ int main(int argc, char** argv) {
 
   struct Texture_Info Loading_Mesage = {};
   struct Texture_Info Loading_BUS_Logo = {};
-  Loading_BUS_Logo.Rect.h = 200;
-  Loading_BUS_Logo.Rect.w = 200;
 
-  Render_Image_From_Path(LOGO_PATH, &Loading_BUS_Logo.Texture);
+  // Render_Image_From_Path(LOGO_PATH, &Loading_BUS_Logo.Texture);
   Render_Image_From_Array(global_Renderer, LOGO_ICON_RAW, LOGO_ICON_RAW_LEN,
       &Loading_BUS_Logo);
+  Loading_BUS_Logo.Rect.h = 200;
+  Loading_BUS_Logo.Rect.w = 200;
   center_Rect(&Loading_BUS_Logo.Rect);
     
   Render_Text("Press any key to start", global_Font,
@@ -128,6 +128,7 @@ LoadingScreen:
 
     // Background image
     SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
+    printf("w : %d and h : %d\n", Loading_BUS_Logo.Rect.w, Loading_BUS_Logo.Rect.h);
     SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
     goto displayFrame;
 
