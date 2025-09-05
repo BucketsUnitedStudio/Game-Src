@@ -66,7 +66,6 @@ int main(int argc, char** argv) {
   int quit = 0;
   SDL_Event currentEvent;
 
-  int selected_menu = 0;
   user_inputs = NONE;
 
   SDL_bool key_pressed = SDL_FALSE;
@@ -146,17 +145,17 @@ StartMenu:
   
     switch (user_inputs) {
     case UP:
-      printf("Index %d\n", main_Menu.selected_index);
-      // selected_menu = (selected_menu + 3 - 1) % 3;
+      printf("Index Before %d\n", main_Menu.selected_index);
       main_Menu.selected_index = (main_Menu.selected_index +
           main_Menu.option_count - 1) % main_Menu.option_count;
       user_inputs = NONE;
+      printf("Index After %d\n", main_Menu.selected_index);
       break;
     case DOWN:
-      printf("Index %d\n", main_Menu.selected_index);
-      selected_menu = (selected_menu + 1) % 3;
+      printf("Index Before %d\n", main_Menu.selected_index);
       main_Menu.selected_index = (main_Menu.selected_index + 1) % main_Menu.option_count;
       user_inputs = NONE;
+      printf("Index After %d\n", main_Menu.selected_index);
       break;
     case LEFT:
       global_Game_Mode = LOADING_SCREEN;
@@ -167,7 +166,7 @@ StartMenu:
     case SELECT:
       // Select that game menu
       user_inputs = NONE;
-      switch (selected_menu) {
+      switch (main_Menu.selected_index) {
         case (0):
           //Start game from where you left off
           global_Game_Mode = EXPLORATION;
