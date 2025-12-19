@@ -30,10 +30,9 @@
 #include <sys/types.h>
 #include <limits.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define WINDOW_NAME "Recollection"
-#define FONT_PATH "fonts/BlockMonoFont/BlockMono-Bold.ttf"
-#define LOGO_PATH "art/sprites/LOGO.jpg"
 #define SAVE_FILE "save_file.cfg"
 
 constexpr int INITIAL_WIDTH = 800;

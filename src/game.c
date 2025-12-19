@@ -6,8 +6,11 @@
 #define GAME_C
 #include "game.h"
 #include "SDL_render.h"
+#include "SDL_rwops.h"
 #include "SDL_stdinc.h"
 #include "SDL_ttf.h"
+#include "unistd.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,6 +29,12 @@ const char FONT_RAW[] = {
 #embed "../fonts/BlockMonoFont/BlockMono-Bold.ttf" 
 };
 const int FONT_RAW_LEN = sizeof(FONT_RAW) / sizeof(FONT_RAW[0]);
+
+const char CONFIG_FILE_DEFAULT[] = {
+#embed "../save_file.cfg"
+};
+const int CONFIG_FILE_DEFAULT_LEN = sizeof(CONFIG_FILE_DEFAULT) / sizeof(CONFIG_FILE_DEFAULT[0]);
+
 
 // Color constants
 const SDL_Color White = {255, 255, 255, 255};
@@ -407,8 +416,11 @@ void init(void) {
           TTF_GetError(), SDL_TRUE);
     }
 
-    global_Font = TTF_OpenFont(FONT_PATH, FONT_PT);
-    global_Font_Title = TTF_OpenFont(FONT_PATH, FONT_PT+20);
+    SDL_RWops *FONT_RW = SDL_RWFromConstMem(FONT_RAW, FONT_RAW_LEN);
+
+    global_Font = TTF_OpenFontRW(FONT_RW, 0, FONT_PT);
+
+    global_Font_Title = TTF_OpenFontRW(FONT_RW, 0, FONT_PT+ 20);
 
     if ((global_Font == NULL) || (global_Font_Title == NULL)) {
       handle_Error(global_Window.Window, "Unable to open font file",
@@ -417,12 +429,23 @@ void init(void) {
   }
 
   {
+CONFIG_PROCESSING:
     // Loading save data from file
     FILE* save_file_fd = NULL;
-    save_file_fd = fopen(SAVE_FILE, "a+");
+    save_file_fd = fopen(SAVE_FILE, "r");
     if (save_file_fd == NULL) 
-      handle_Error(global_Window.Window, "Unable to open save file", NULL,
-          SDL_TRUE);
+    {
+      if (errno == ENOENT) {
+        save_file_fd = NULL;
+        save_file_fd = fopen(SAVE_FILE, "w");
+        fwrite(CONFIG_FILE_DEFAULT, 1, CONFIG_FILE_DEFAULT_LEN, save_file_fd);
+        fclose(save_file_fd);
+        goto CONFIG_PROCESSING;
+      } else 
+        handle_Error(global_Window.Window, "Unable to open config. file", NULL,
+            SDL_TRUE);
+    }
+
     
   
     // Should initialize all values to zero

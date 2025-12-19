@@ -16,7 +16,6 @@ int main(int argc, char** argv) {
   struct Texture_Info Loading_Mesage = {};
   struct Texture_Info Loading_BUS_Logo = {};
 
-  // Render_Image_From_Path(LOGO_PATH, &Loading_BUS_Logo.Texture);
   Render_Image_From_Array(global_Renderer, LOGO_ICON_RAW, LOGO_ICON_RAW_LEN,
       &Loading_BUS_Logo);
   Loading_BUS_Logo.Rect.h = 200;
