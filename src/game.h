@@ -133,6 +133,34 @@ void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer);
 void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width, int padding);
 void Menu_destroy(struct Menu* dead_menu);
 
+struct Sprite_stats { 
+  int Attack;
+  int Defense;
+  int Speed;
+};
+
+struct Sprite_inventory {
+  void* weapon;
+  void* armour;
+  void* Item_Slots[5];
+};
+
+enum Sprite_status_effect {
+  SPEED,
+  INVINC
+};
+
+struct Sprite {
+  char* name;
+  enum Sprite_status_effect status;
+  struct Sprite_stats stats;
+  struct Texture_Info info;
+  void* inventory[5];
+};
+
+extern void Sprite_create(struct Sprite* buffer_Sprite, char* img_array, char*
+    name);
+
 extern struct Window_Info global_Window;
 extern SDL_Renderer* global_Renderer;
 extern enum gameMode global_Game_Mode;

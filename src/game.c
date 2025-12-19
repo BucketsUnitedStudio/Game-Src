@@ -158,6 +158,13 @@ void Menu_destroy(struct Menu* dead_menu) {
   memset(dead_menu, '\0', sizeof(struct Menu));
 }
 
+void Sprite_create(struct Sprite *buffer_Sprite, char *img_array, char *name) {
+  memset(buffer_Sprite, 0, sizeof(*buffer_Sprite));
+  buffer_Sprite->name = name;
+  Render_Image_From_Array(global_Renderer, img_array, sizeof(img_array),
+      &buffer_Sprite->info);
+}
+
 // Tries to handle errors so that they are easier to diagnose on systems without
 // a stderr stream.
 // -  Needs a SDL_Window to display SDL_ShowSimpleMessageBox 

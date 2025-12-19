@@ -70,6 +70,10 @@ int main(int argc, char** argv) {
 
   SDL_bool key_pressed = SDL_FALSE;
 
+  struct Sprite Player = {};
+  Player.name = "Bozo";
+  Player.info.Rect = (SDL_Rect) {.x= 0,.y= 0};
+
   while (quit != 1) {
     frame_cap_thread =
       SDL_CreateThread(&length_Of_Frame,"frame_cap_thread",
@@ -90,7 +94,6 @@ int main(int argc, char** argv) {
         }
       }
     } 
-    // SDL_GetWindowSize(global_Window.Window, &(global_Window.Rect.w), &(global_Window.Rect.h));
 
     // Basically clearing then re-doing each frame 
     SDL_RenderClear(global_Renderer);
@@ -128,7 +131,6 @@ LoadingScreen:
 
     // Background image
     SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
-    // printf("w : %d and h : %d\n", Loading_BUS_Logo.Rect.w, Loading_BUS_Logo.Rect.h);
     SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
     goto displayFrame;
 
@@ -145,17 +147,14 @@ StartMenu:
   
     switch (user_inputs) {
     case UP:
-      printf("Index Before %d\n", main_Menu.selected_index);
       main_Menu.selected_index = (main_Menu.selected_index +
           main_Menu.option_count - 1) % main_Menu.option_count;
       user_inputs = NONE;
-      printf("Index After %d\n", main_Menu.selected_index);
       break;
     case DOWN:
-      printf("Index Before %d\n", main_Menu.selected_index);
-      main_Menu.selected_index = (main_Menu.selected_index + 1) % main_Menu.option_count;
+      main_Menu.selected_index = (main_Menu.selected_index + 1) %
+        main_Menu.option_count;
       user_inputs = NONE;
-      printf("Index After %d\n", main_Menu.selected_index);
       break;
     case LEFT:
       global_Game_Mode = LOADING_SCREEN;
