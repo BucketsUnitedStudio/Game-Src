@@ -23,7 +23,8 @@ const int LOGO_ICON_RAW_LEN = sizeof(LOGO_ICON_RAW) / sizeof(LOGO_ICON_RAW[0]);
 const char TEST_BACKGROUND[] = {
 #embed "../art/maps/map.jpg"
 };
-const int TEST_BACKGROUND_LEN = sizeof(TEST_BACKGROUND) / sizeof(TEST_BACKGROUND[0]);
+const int TEST_BACKGROUND_LEN = sizeof(TEST_BACKGROUND) /
+  sizeof(TEST_BACKGROUND[0]);
 
 const char FONT_RAW[] = {
 #embed "../fonts/BlockMonoFont/BlockMono-Bold.ttf" 
@@ -33,7 +34,8 @@ const int FONT_RAW_LEN = sizeof(FONT_RAW) / sizeof(FONT_RAW[0]);
 const char CONFIG_FILE_DEFAULT[] = {
 #embed "../save_file.cfg"
 };
-const int CONFIG_FILE_DEFAULT_LEN = sizeof(CONFIG_FILE_DEFAULT) / sizeof(CONFIG_FILE_DEFAULT[0]);
+const int CONFIG_FILE_DEFAULT_LEN = sizeof(CONFIG_FILE_DEFAULT) /
+  sizeof(CONFIG_FILE_DEFAULT[0]);
 
 
 // Color constants
@@ -115,7 +117,8 @@ void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
   to_align->textures[0].Rect.x = reference_point->x;
   to_align->textures[0].Rect.y = reference_point->y;
 
-  int center_x = to_align->textures[0].Rect.x + (to_align->textures[0].Rect.w/2);
+  int center_x = to_align->textures[0].Rect.x +
+    (to_align->textures[0].Rect.w/2);
 
   for (int i=1; i<to_align->option_count; i++) {
     to_align->textures[i].Rect.x = center_x - (to_align->textures[i].Rect.w/2);
@@ -154,8 +157,10 @@ void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width,
   }
   createHighlightFromTexture(&menu->textures[item_index], &menu->highlight,
       border_width, padding);
-  menu->highlight.Rect.x = menu->textures[item_index].Rect.x - padding - border_width;
-  menu->highlight.Rect.y = menu->textures[item_index].Rect.y - padding - border_width;
+  menu->highlight.Rect.x = menu->textures[item_index].Rect.x - padding -
+    border_width;
+  menu->highlight.Rect.y = menu->textures[item_index].Rect.y - padding -
+    border_width;
 }
 
 // Frees all the textures in a 'dead' menu and then sets everything to a NULL
@@ -184,7 +189,8 @@ void Sprite_create(struct Sprite *buffer_Sprite, char *img_array, char *name) {
 // -  the fatal boolean decides whether the error is fatal to the program i.e.
 //    whether or not to call exit(1) 
 // 
-void handle_Error(SDL_Window* window, char* msg, const char* error_func, SDL_bool fatal) {
+void handle_Error(SDL_Window* window, char* msg, const char* error_func,
+    SDL_bool fatal) {
   if ((msg == NULL) || (window == NULL)) 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, 
         "Error in calling handle_Error()", "Needs BOTH a window and message",
@@ -266,7 +272,8 @@ struct array_and_len* parse_list(char* str, char delimiter){
   return buffer;
 
 Error:;
-  handle_Error(global_Window.Window, "Error parsing save file", NULL, SDL_FALSE);
+  handle_Error(global_Window.Window, "Error parsing save file", NULL,
+      SDL_FALSE);
   buffer->array = NULL;
   buffer->len = 0;
   return buffer;
@@ -300,7 +307,8 @@ void Render_Image_From_Path(const char* path, SDL_Texture** Texture) {
   SDL_Surface* temp_surface = IMG_Load(path);
 
   if (temp_surface == NULL) {
-    handle_Error(global_Window.Window, "Unable to load image", IMG_GetError(), SDL_TRUE);
+    handle_Error(global_Window.Window, "Unable to load image", IMG_GetError(),
+        SDL_TRUE);
   } 
 
   SDL_DestroyTexture(*Texture);
@@ -321,7 +329,8 @@ void Render_Image_From_Array(SDL_Renderer* Renderer, const void *src_ptr, const
       "Error reading image from memory", SDL_GetError(), SDL_TRUE);
 
   Texture->Texture = IMG_LoadTexture_RW(Renderer, temp, 1);
-  SDL_QueryTexture(Texture->Texture, NULL, NULL, &Texture->Rect.w, &Texture->Rect.h);
+  SDL_QueryTexture(Texture->Texture, NULL, NULL, &Texture->Rect.w,
+      &Texture->Rect.h);
 }
 
 void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
@@ -396,8 +405,8 @@ void init(void) {
       INITIAL_WIDTH, INITIAL_HEIGHT, SDL_WINDOW_SHOWN |
       SDL_WINDOW_OPENGL | SDL_WINDOW_MAXIMIZED);
 
-  if (global_Window.Window == NULL) { fprintf(stderr, "Window couldn't be initialized: %s\n",
-        SDL_GetError());
+  if (global_Window.Window == NULL) { fprintf(stderr, 
+      "Window couldn't be initialized: %s\n", SDL_GetError());
     exit(1);
   }
 
@@ -487,8 +496,8 @@ CONFIG_PROCESSING:
         for (int i=0; Game_Settings.Keybinds.inputs[i].search_query; i++) {
           len = strlen(Game_Settings.Keybinds.inputs[i].search_query);
           index=-1;
-          if (!strncmp(Game_Settings.Keybinds.inputs[i].search_query, line_buffer,
-                len)) {
+          if (!strncmp(Game_Settings.Keybinds.inputs[i].search_query,
+                line_buffer, len)) {
             index = findIndexOfChar(line_buffer, '=', 0) + 1;
             line_buffer[strlen(line_buffer)-2] = '\0';
             found=i;

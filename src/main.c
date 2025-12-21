@@ -57,7 +57,8 @@ int main(int argc, char** argv) {
   Render_Image_From_Array(global_Renderer, TEST_BACKGROUND, TEST_BACKGROUND_LEN,
       &test_background);
   SDL_Rect test_player_View = {};
-  SDL_GetWindowSize(global_Window.Window, &(test_player_View.w), &(test_player_View.h));
+  SDL_GetWindowSize(global_Window.Window, &(test_player_View.w),
+      &(test_player_View.h));
 
   int fps_limit = FPS_LIMIT;
   SDL_Thread* frame_cap_thread;
@@ -86,9 +87,11 @@ int main(int argc, char** argv) {
         user_inputs = NONE;
         key_pressed = SDL_TRUE;
         for (int i=0; i<(SELECT); i++) {
-          if (currentEvent.key.keysym.sym == Game_Settings.Keybinds.inputs[i].keycode){
+          if (currentEvent.key.keysym.sym ==
+              Game_Settings.Keybinds.inputs[i].keycode){
             user_inputs = (enum directions) i+1;
-            printf("%s\n", Game_Settings.Keybinds.inputs[i].key_name);
+            // print the input keys 
+            // printf("%s\n", Game_Settings.Keybinds.inputs[i].key_name);
           }
         }
       }
@@ -129,8 +132,10 @@ LoadingScreen:
     Loading_Mesage.Rect.y += (global_Window.Rect.h / 4);
 
     // Background image
-    SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL, &Loading_BUS_Logo.Rect);
-    SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL, &Loading_Mesage.Rect);
+    SDL_RenderCopy(global_Renderer, Loading_BUS_Logo.Texture, NULL,
+        &Loading_BUS_Logo.Rect);
+    SDL_RenderCopy(global_Renderer, Loading_Mesage.Texture, NULL,
+        &Loading_Mesage.Rect);
     goto displayFrame;
 
 StartMenu:
@@ -222,7 +227,8 @@ Exploration:
       break;
     }
 
-    SDL_RenderCopy(global_Renderer, test_background.Texture, &test_player_View, NULL);
+    SDL_RenderCopy(global_Renderer, test_background.Texture, &test_player_View,
+        NULL);
     SDL_SetRenderDrawColor(global_Renderer, Black.r, Black.g,
         Black.b, Black.a);
 
@@ -290,8 +296,4 @@ displayFrame:
   SDL_DestroyWindow(global_Window.Window);
   global_Window.Window = NULL;
 }
-
-
-
-
 

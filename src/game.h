@@ -129,7 +129,8 @@ void Menu_align(struct Menu* to_align, SDL_Rect* reference_point, const int
     spacing);
 void Menu_initTextures(struct Menu* menu, TTF_Font* font);
 void Menu_renderItemTextures(struct Menu* menu, SDL_Renderer* global_Renderer);
-void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width, int padding);
+void Menu_highlightItem(struct Menu* menu, Uint32 item_index, int border_width,
+    int padding);
 void Menu_destroy(struct Menu* dead_menu);
 
 struct Sprite_stats { 
@@ -176,7 +177,8 @@ extern const SDL_Color Black;
 extern const SDL_Color Red;
 
 
-extern void handle_Error(SDL_Window* window, char* msg, const char* error_func, SDL_bool fatal );
+extern void handle_Error(SDL_Window* window, char* msg, const char* error_func,
+    SDL_bool fatal );
 extern void center_Rect(SDL_Rect* to_Be_Centered);
 extern void center_Rect_Relative(SDL_Rect* anchor, SDL_Rect* to_Be_Centered);
 extern int findIndexOfChar(char* str, char character, int occurrence_num); 
@@ -187,8 +189,8 @@ extern void Render_Text(const char* text, TTF_Font* font, SDL_Color text_color,
 extern void Render_Image_From_Path(const char* path, SDL_Texture** Texture);
 extern void Render_Image_From_Array(SDL_Renderer* Renderer, const void* src_ptr,
     const int buff_len, struct Texture_Info* Texture);
-extern void createHighlightFromTexture (struct Texture_Info* src, struct Texture_Info*
-    render_target, Sint32 border_width, Sint32 padding);
+extern void createHighlightFromTexture (struct Texture_Info* src, struct
+    Texture_Info* render_target, Sint32 border_width, Sint32 padding);
 extern int length_Of_Frame(void * fps);
 
 
