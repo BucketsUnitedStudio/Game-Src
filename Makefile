@@ -29,7 +29,7 @@ debug-cmake:
 	make -C build
 
 run:
-	# make -C build
+	$(CC) $(FLAGS) $(SRC_FILE) -o $(SRC_EXEC) $(FLAGS) $(PKG_CONFIG_FLAGS)
 	./$(SRC_EXEC)
 
 crosscomp:

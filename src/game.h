@@ -40,7 +40,7 @@ constexpr int INITIAL_HEIGHT = 800;
 constexpr int FONT_PT = 20;
 constexpr int FPS_LIMIT = 60;
 
-constexpr int DEFAULT_BORDER_AND_PADDING = 10;
+constexpr int DEFAULT_BORDER_AND_PADDING = 5;
 
 extern const char LOGO_ICON_RAW[];
 extern const int LOGO_ICON_RAW_LEN;

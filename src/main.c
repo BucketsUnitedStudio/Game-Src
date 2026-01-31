@@ -52,6 +52,12 @@ int main(int argc, char** argv) {
   main_Menu.text_for_options[2] = "Settings";
   Menu_initTextures(&main_Menu, global_Font_Title);
 
+  struct Menu Settings_Menu = {};
+  Menu_init(&Settings_Menu, 2);
+  Settings_Menu.text_for_options[0] = settings_file.strings[0];
+  Settings_Menu.text_for_options[1] = settings_file.strings[1];
+  Menu_initTextures(&Settings_Menu, NULL);
+
   // Import image here
   struct Texture_Info test_background = {};
   Render_Image_From_Array(global_Renderer, TEST_BACKGROUND, TEST_BACKGROUND_LEN,
@@ -240,6 +246,11 @@ Exploration:
 
 Settings:
     SDL_RenderClear(global_Renderer);
+
+    center_Rect(&Settings_Menu.textures[0].Rect);
+    Menu_align(&Settings_Menu, &Settings_Menu.textures[0].Rect, 20);
+    Menu_renderItemTextures(&Settings_Menu, global_Renderer);
+
     goto displayFrame;
 
 Confirmation:
