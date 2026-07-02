@@ -5,8 +5,8 @@
 #ifndef GAME_C
 #define GAME_C
 #include "game.h"
+#include "SDL_error.h"
 #include "SDL_render.h"
-#include "SDL_rwops.h"
 #include "SDL_stdinc.h"
 #include "SDL_ttf.h"
 #include "unistd.h"
@@ -385,45 +385,42 @@ int length_Of_Frame(void * fps) {
 
 void init(void) {
   //Initializing the SDL_Subsystems
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-    fprintf(stderr, "Was unable to initialize SDL: %s\n",
-        SDL_GetError());
-    exit(1);
-  }
-  
+  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) 
+    handle_Error(NULL, "Was unable to initialize SDL", SDL_GetError(), true);
 
   // This function is kinda weird, but I swear this is how it's supposed to
   // work: https://wiki.libsdl.org/SDL2_image/IMG_Init
-  if ( (IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) == 0) {
-    fprintf(stderr, "Was unable to initialize SDL_IMG extension: %s\n",
-        IMG_GetError()); 
-    exit(1);
-  }
+  if ( (IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) == 0) 
+    handle_Error(NULL, "Was unable to initialize SDL_IMG extension",
+                 IMG_GetError(), true);
 
+  // Creating the main program's window
   global_Window.Window = SDL_CreateWindow(WINDOW_NAME,
       0, 0,
       INITIAL_WIDTH, INITIAL_HEIGHT, SDL_WINDOW_SHOWN |
       SDL_WINDOW_OPENGL | SDL_WINDOW_MAXIMIZED);
 
-  if (global_Window.Window == NULL) { fprintf(stderr, 
-      "Window couldn't be initialized: %s\n", SDL_GetError());
-    exit(1);
-  }
+  // Error-checking the window
+  if (global_Window.Window == NULL) 
+    handle_Error(NULL, "Window couldn't be initialized", SDL_GetError(), true);
 
   SDL_MaximizeWindow(global_Window.Window);
 
   // Defining and checking the global_Renderer variable
-  global_Renderer = SDL_CreateRenderer(global_Window.Window, -1,
-      SDL_RENDERER_ACCELERATED);
+  global_Renderer =
+      SDL_CreateRenderer(global_Window.Window, -1, SDL_RENDERER_ACCELERATED);
+
+  if (!global_Renderer)
+    handle_Error(global_Window.Window, "Unable to initialize main renderer",
+                 SDL_GetError(), true);
 
   // Loading the default fonts for the game (font can be changed, this one is
   // just a placeholder)
   {
     int temp = TTF_Init();
-    if (temp < 0) {
+    if (temp < 0) 
       handle_Error(global_Window.Window, "Error initializing TTF Library:",
           TTF_GetError(), SDL_TRUE);
-    }
 
     SDL_RWops *FONT_RW = SDL_RWFromConstMem(FONT_RAW, FONT_RAW_LEN);
 
@@ -431,10 +428,9 @@ void init(void) {
 
     global_Font_Title = TTF_OpenFontRW(FONT_RW, 0, FONT_PT+ 20);
 
-    if ((global_Font == NULL) || (global_Font_Title == NULL)) {
+    if ((global_Font == NULL) || (global_Font_Title == NULL)) 
       handle_Error(global_Window.Window, "Unable to open font file",
           TTF_GetError(), SDL_TRUE);
-    }
   }
 
   {
@@ -442,8 +438,7 @@ CONFIG_PROCESSING:
     // Loading save data from file
     FILE* save_file_fd = NULL;
     save_file_fd = fopen(SAVE_FILE, "r");
-    if (save_file_fd == NULL) 
-    {
+    if (save_file_fd == NULL) {
       if (errno == ENOENT) {
         save_file_fd = NULL;
         save_file_fd = fopen(SAVE_FILE, "w");
@@ -454,8 +449,6 @@ CONFIG_PROCESSING:
         handle_Error(global_Window.Window, "Unable to open config. file", NULL,
             SDL_TRUE);
     }
-
-    
   
     // Should initialize all values to zero
     char line_buffer[256] = { 0 };
